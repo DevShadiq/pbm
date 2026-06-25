@@ -42,7 +42,7 @@
             <h1 class="text-xl md:text-2xl font-black">{{ currentTitle }}</h1>
           </div>
           <div class="flex items-center gap-3">
-            <span class="hidden sm:block text-sm text-gray-500">{{ user?.name }}</span>
+            <span class="hidden sm:block text-sm text-gray-500">{{ user?.fullName }}</span>
             <button class="bg-gray-900 hover:bg-black text-white rounded-lg px-4 py-2 text-sm font-bold" @click="logout">
               <i class="fas fa-right-from-bracket mr-2"></i>
               Logout
@@ -235,13 +235,171 @@
             </article>
           </div>
         </section>
+
+        <section v-if="activeTab === 'users'" class="grid xl:grid-cols-[420px_1fr] gap-6">
+          <form class="bg-white rounded-lg border border-gray-200 p-6 h-fit" @submit.prevent="saveUser">
+            <h2 class="text-lg font-black mb-5">{{ userForm.userId ? 'Edit User' : 'New User' }}</h2>
+            <label class="block mb-4">
+              <span class="text-sm font-bold text-gray-700">Full Name</span>
+              <input v-model="userForm.fullName" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3" required>
+            </label>
+            <label class="block mb-4">
+              <span class="text-sm font-bold text-gray-700">Username</span>
+              <input v-model="userForm.username" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3" required>
+            </label>
+            <label class="block mb-4">
+              <span class="text-sm font-bold text-gray-700">Email</span>
+              <input v-model="userForm.email" type="email" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3">
+            </label>
+            <label class="block mb-4">
+              <span class="text-sm font-bold text-gray-700">Phone</span>
+              <input v-model="userForm.phone" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3">
+            </label>
+            <label class="block mb-4">
+              <span class="text-sm font-bold text-gray-700">Password {{ userForm.userId ? '(leave blank to keep)' : '' }}</span>
+              <input v-model="userForm.password" type="password" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3" :required="!userForm.userId">
+            </label>
+            <label class="block mb-4">
+              <span class="text-sm font-bold text-gray-700">Status</span>
+              <select v-model="userForm.status" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3">
+                <option>ACTIVE</option>
+                <option>INACTIVE</option>
+                <option>LOCKED</option>
+              </select>
+            </label>
+            <div class="mb-5">
+              <span class="text-sm font-bold text-gray-700 block mb-2">Roles</span>
+              <label v-for="role in access.roles" :key="role.roleId" class="flex items-center gap-2 mb-2 text-sm">
+                <input v-model="userForm.roleIds" type="checkbox" :value="role.roleId">
+                {{ role.roleName }}
+              </label>
+            </div>
+            <div class="flex gap-3">
+              <button class="bg-bdGreen-700 hover:bg-bdGreen-800 text-white rounded-lg px-5 py-3 font-bold">Save</button>
+              <button type="button" class="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg px-5 py-3 font-bold" @click="resetUser">Clear</button>
+            </div>
+          </form>
+
+          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="p-5 border-b border-gray-200 flex items-center justify-between">
+              <h2 class="text-lg font-black">Users</h2>
+              <span class="text-sm text-gray-500">{{ access.users.length }} total</span>
+            </div>
+            <div class="divide-y divide-gray-200">
+              <article v-for="row in access.users" :key="row.userId" class="p-5 flex justify-between gap-4">
+                <div>
+                  <h3 class="font-black">{{ row.fullName }}</h3>
+                  <p class="text-sm text-gray-500">{{ row.username }} · {{ row.email || 'No email' }}</p>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    <span v-for="role in row.roles" :key="role" class="text-xs bg-bdGreen-50 text-bdGreen-700 px-2 py-1 rounded">{{ role }}</span>
+                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">{{ row.status }}</span>
+                  </div>
+                </div>
+                <button class="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 shrink-0" @click="editUser(row)">
+                  <i class="fas fa-pen"></i>
+                </button>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section v-if="activeTab === 'roles'" class="grid xl:grid-cols-[420px_1fr] gap-6">
+          <form class="bg-white rounded-lg border border-gray-200 p-6 h-fit" @submit.prevent="saveRole">
+            <h2 class="text-lg font-black mb-5">{{ roleForm.roleId ? 'Edit Role' : 'New Role' }}</h2>
+            <label class="block mb-4">
+              <span class="text-sm font-bold text-gray-700">Role Name</span>
+              <input v-model="roleForm.roleName" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3" required>
+            </label>
+            <label class="block mb-4">
+              <span class="text-sm font-bold text-gray-700">Role Code</span>
+              <input v-model="roleForm.roleCode" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 uppercase" required>
+            </label>
+            <label class="block mb-4">
+              <span class="text-sm font-bold text-gray-700">Description</span>
+              <textarea v-model="roleForm.description" rows="3" class="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3"></textarea>
+            </label>
+            <label class="flex items-center gap-3 mb-5">
+              <input v-model="roleForm.isActive" type="checkbox" class="w-5 h-5">
+              <span class="text-sm font-bold text-gray-700">Active</span>
+            </label>
+            <div class="flex gap-3">
+              <button class="bg-bdGreen-700 hover:bg-bdGreen-800 text-white rounded-lg px-5 py-3 font-bold">Save</button>
+              <button type="button" class="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg px-5 py-3 font-bold" @click="resetRole">Clear</button>
+            </div>
+          </form>
+
+          <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <article v-for="role in access.roles" :key="role.roleId" class="bg-white rounded-lg border border-gray-200 p-5">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <h3 class="font-black">{{ role.roleName }}</h3>
+                  <p class="text-sm text-gray-500">{{ role.roleCode }}</p>
+                </div>
+                <button class="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200" @click="editRole(role)">
+                  <i class="fas fa-pen"></i>
+                </button>
+              </div>
+              <p class="text-sm text-gray-600 mt-3">{{ role.description || 'No description' }}</p>
+              <span class="inline-flex text-xs mt-4 px-2 py-1 rounded" :class="role.isActive ? 'bg-bdGreen-50 text-bdGreen-700' : 'bg-red-50 text-red-700'">
+                {{ role.isActive ? 'ACTIVE' : 'INACTIVE' }}
+              </span>
+            </article>
+          </div>
+        </section>
+
+        <section v-if="activeTab === 'permissions'" class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div class="p-5 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-black">Role Permission Matrix</h2>
+              <p class="text-sm text-gray-500">Grant page-level actions like VIEW, CREATE, UPDATE, DELETE, EXPORT, and PRINT.</p>
+            </div>
+            <select v-model="selectedRoleId" class="rounded-lg border border-gray-300 px-4 py-3 min-w-64">
+              <option value="">Select role</option>
+              <option v-for="role in access.roles" :key="role.roleId" :value="role.roleId">{{ role.roleName }}</option>
+            </select>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50 text-gray-600">
+                <tr>
+                  <th class="text-left px-4 py-3 min-w-64">Page</th>
+                  <th v-for="permission in access.permissions" :key="permission.permissionId" class="px-4 py-3 text-center">
+                    {{ permission.permissionCode }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr v-for="page in access.pages" :key="page.pageId">
+                  <td class="px-4 py-3">
+                    <div class="font-bold">{{ page.pageName }}</div>
+                    <div class="text-xs text-gray-500">{{ page.pageCode }}</div>
+                  </td>
+                  <td v-for="permission in access.permissions" :key="permission.permissionId" class="px-4 py-3 text-center">
+                    <input
+                      type="checkbox"
+                      :disabled="!selectedRoleId"
+                      :checked="hasPermission(page.pageId, permission.permissionId)"
+                      @change="togglePermission(page.pageId, permission.permissionId, $event.target.checked)"
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="p-5 border-t border-gray-200">
+            <button class="bg-bdGreen-700 hover:bg-bdGreen-800 text-white rounded-lg px-5 py-3 font-bold disabled:opacity-50" :disabled="!selectedRoleId" @click="savePermissions">
+              <i class="fas fa-key mr-2"></i>
+              Save Permissions
+            </button>
+          </div>
+        </section>
       </div>
     </section>
   </main>
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { api, clearSession, getStoredUser } from './api.js';
 
 const user = ref(getStoredUser());
@@ -251,6 +409,17 @@ const message = ref('');
 const overview = ref({ totals: {} });
 const notices = ref([]);
 const teachers = ref([]);
+const access = ref({
+  users: [],
+  roles: [],
+  modules: [],
+  pages: [],
+  menus: [],
+  permissions: [],
+  rolePermissions: [],
+});
+const selectedRoleId = ref('');
+const permissionDraft = ref(new Set());
 
 const settings = reactive({
   name_bn: '',
@@ -284,11 +453,36 @@ const blankTeacher = () => ({
 const noticeForm = reactive(blankNotice());
 const teacherForm = reactive(blankTeacher());
 
+const blankUser = () => ({
+  userId: null,
+  fullName: '',
+  username: '',
+  email: '',
+  phone: '',
+  password: '',
+  status: 'ACTIVE',
+  roleIds: [],
+});
+
+const blankRole = () => ({
+  roleId: null,
+  roleName: '',
+  roleCode: '',
+  description: '',
+  isActive: true,
+});
+
+const userForm = reactive(blankUser());
+const roleForm = reactive(blankRole());
+
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: 'fas fa-chart-pie' },
   { id: 'settings', label: 'Settings', icon: 'fas fa-gear' },
   { id: 'notices', label: 'Notices', icon: 'fas fa-bullhorn' },
   { id: 'teachers', label: 'Teachers', icon: 'fas fa-chalkboard-user' },
+  { id: 'users', label: 'Users', icon: 'fas fa-users' },
+  { id: 'roles', label: 'Roles', icon: 'fas fa-id-badge' },
+  { id: 'permissions', label: 'Permissions', icon: 'fas fa-key' },
 ];
 
 const modules = [
@@ -318,7 +512,7 @@ const statCards = computed(() => [
   { label: 'Notices', value: overview.value.totals?.notices || 0, icon: 'fas fa-bullhorn' },
   { label: 'Teachers', value: overview.value.totals?.teachers || 0, icon: 'fas fa-chalkboard-user' },
   { label: 'Admissions', value: overview.value.totals?.admissions || 0, icon: 'fas fa-user-plus' },
-  { label: 'Pending', value: overview.value.totals?.pendingAdmissions || 0, icon: 'fas fa-clock' },
+  { label: 'Users', value: overview.value.totals?.users || 0, icon: 'fas fa-users' },
 ]);
 
 function setMessage(text) {
@@ -348,14 +542,17 @@ function fillSettings(row) {
 
 async function loadData() {
   try {
-    const [overviewData, noticeData, teacherData] = await Promise.all([
+    const [overviewData, noticeData, teacherData, accessData] = await Promise.all([
       api.overview(),
       api.notices(),
       api.teachers(),
+      api.access(),
     ]);
     overview.value = overviewData;
     notices.value = noticeData.notices;
     teachers.value = teacherData.teachers;
+    access.value = accessData;
+    refreshPermissionDraft();
     fillSettings(overviewData.settings);
   } catch (err) {
     if (err.message.includes('Session')) logout();
@@ -438,6 +635,104 @@ async function removeTeacher(id) {
   }
 }
 
+function resetUser() {
+  Object.assign(userForm, blankUser());
+}
+
+function editUser(row) {
+  Object.assign(userForm, {
+    userId: row.userId,
+    fullName: row.fullName,
+    username: row.username,
+    email: row.email || '',
+    phone: row.phone || '',
+    password: '',
+    status: row.status || 'ACTIVE',
+    roleIds: access.value.roles
+      .filter((role) => row.roles.includes(role.roleCode))
+      .map((role) => role.roleId),
+  });
+  activeTab.value = 'users';
+}
+
+async function saveUser() {
+  try {
+    await api.saveUser(userForm);
+    resetUser();
+    await loadData();
+    setMessage('User saved.');
+  } catch (err) {
+    setError(err);
+  }
+}
+
+function resetRole() {
+  Object.assign(roleForm, blankRole());
+}
+
+function editRole(role) {
+  Object.assign(roleForm, role);
+  activeTab.value = 'roles';
+}
+
+async function saveRole() {
+  try {
+    await api.saveRole(roleForm);
+    resetRole();
+    await loadData();
+    setMessage('Role saved.');
+  } catch (err) {
+    setError(err);
+  }
+}
+
+function permissionKey(pageId, permissionId) {
+  return `${Number(selectedRoleId.value)}:${Number(pageId)}:${Number(permissionId)}`;
+}
+
+function refreshPermissionDraft() {
+  if (!selectedRoleId.value && access.value.roles.length) {
+    selectedRoleId.value = access.value.roles[0].roleId;
+  }
+
+  const roleId = Number(selectedRoleId.value);
+  permissionDraft.value = new Set(
+    access.value.rolePermissions
+      .filter((grant) => Number(grant.roleId) === roleId && Boolean(grant.isAllowed))
+      .map((grant) => `${Number(grant.roleId)}:${Number(grant.pageId)}:${Number(grant.permissionId)}`),
+  );
+}
+
+function hasPermission(pageId, permissionId) {
+  return permissionDraft.value.has(permissionKey(pageId, permissionId));
+}
+
+function togglePermission(pageId, permissionId, checked) {
+  const key = permissionKey(pageId, permissionId);
+  const next = new Set(permissionDraft.value);
+  if (checked) next.add(key);
+  else next.delete(key);
+  permissionDraft.value = next;
+}
+
+async function savePermissions() {
+  try {
+    const roleId = Number(selectedRoleId.value);
+    const grants = [...permissionDraft.value]
+      .map((key) => {
+        const [currentRoleId, pageId, permissionId] = key.split(':').map(Number);
+        return { roleId: currentRoleId, pageId, permissionId, isAllowed: true };
+      })
+      .filter((grant) => grant.roleId === roleId);
+
+    await api.saveRolePermissions(roleId, grants);
+    await loadData();
+    setMessage('Permissions saved.');
+  } catch (err) {
+    setError(err);
+  }
+}
+
 function logout() {
   clearSession();
   window.location.href = '/login';
@@ -452,5 +747,8 @@ onMounted(async () => {
     logout();
   }
 });
-</script>
 
+watch(selectedRoleId, () => {
+  refreshPermissionDraft();
+});
+</script>

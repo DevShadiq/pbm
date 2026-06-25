@@ -58,6 +58,29 @@ export const api = {
   overview() {
     return apiRequest('/admin/overview');
   },
+  access() {
+    return apiRequest('/admin/access');
+  },
+  saveUser(user) {
+    const isEdit = Boolean(user.userId);
+    return apiRequest(`/admin/users${isEdit ? `/${user.userId}` : ''}`, {
+      method: isEdit ? 'PUT' : 'POST',
+      body: JSON.stringify(user),
+    });
+  },
+  saveRole(role) {
+    const isEdit = Boolean(role.roleId);
+    return apiRequest(`/admin/roles${isEdit ? `/${role.roleId}` : ''}`, {
+      method: isEdit ? 'PUT' : 'POST',
+      body: JSON.stringify(role),
+    });
+  },
+  saveRolePermissions(roleId, grants) {
+    return apiRequest(`/admin/roles/${roleId}/permissions`, {
+      method: 'PUT',
+      body: JSON.stringify({ grants }),
+    });
+  },
   publicData() {
     return apiRequest('/public');
   },
