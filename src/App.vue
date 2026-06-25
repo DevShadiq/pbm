@@ -41,7 +41,7 @@
                 <!-- Logo Area -->
                 <div class="flex items-center gap-3 shrink-0">
                     <div class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-bdGreen-50 border-2 border-bdGreen-500 p-1 anim-pulse-green">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Emblem_of_Bangladesh.svg/200px-Emblem_of_Bangladesh.svg.png" 
+                        <img src="/logo.png" 
                              alt="জাতীয় প্রতীক" class="w-full h-full object-contain rounded-full" onerror="this.style.display='none'">
                     </div>
                     <div class="leading-tight">
