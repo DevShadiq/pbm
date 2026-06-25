@@ -1,0 +1,327 @@
+Below is a reusable **Vue + Node.js + MySQL role/menu/permission system** design.
+
+## 1. Core Concept
+
+Use this structure in every project:
+
+```text
+users
+roles
+user_roles
+app_modules
+app_pages
+menus
+permissions
+role_permissions
+```
+
+Permission actions:
+
+```text
+VIEW
+CREATE
+EDIT
+UPDATE
+DELETE
+APPROVE
+EXPORT
+PRINT
+```
+
+---
+
+## 2. MySQL Table Design
+
+```sql
+CREATE TABLE users (
+    user_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    full_name VARCHAR(150) NOT NULL,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(150) UNIQUE,
+    phone VARCHAR(30),
+    password_hash VARCHAR(255) NOT NULL,
+    status ENUM('ACTIVE','INACTIVE','LOCKED') DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+```sql
+CREATE TABLE roles (
+    role_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    role_name VARCHAR(100) NOT NULL UNIQUE,
+    role_code VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+```sql
+CREATE TABLE user_roles (
+    user_role_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(user_id, role_id),
+
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (role_id) REFERENCES roles(role_id)
+);
+```
+
+---
+
+## 3. Application Module Table
+
+Example modules:
+
+```text
+Dashboard
+Student Management
+Employee Management
+Bike Management
+Expense Management
+Reports
+Settings
+```
+
+```sql
+CREATE TABLE app_modules (
+    module_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    module_name VARCHAR(150) NOT NULL,
+    module_code VARCHAR(80) NOT NULL UNIQUE,
+    icon VARCHAR(100),
+    sort_order INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE
+);
+```
+
+---
+
+## 4. Page Table
+
+Each Vue route/page will be stored here.
+
+```sql
+CREATE TABLE app_pages (
+    page_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    module_id BIGINT NOT NULL,
+    page_name VARCHAR(150) NOT NULL,
+    page_code VARCHAR(100) NOT NULL UNIQUE,
+    route_path VARCHAR(255) NOT NULL,
+    component_name VARCHAR(150),
+    icon VARCHAR(100),
+    sort_order INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+
+    FOREIGN KEY (module_id) REFERENCES app_modules(module_id)
+);
+```
+
+Example:
+
+```text
+/page/student-list
+/page/student-entry
+/page/employee-list
+/page/fuel-entry
+/page/expense-entry
+```
+
+---
+
+## 5. Menu Table
+
+This supports parent-child sidebar menu.
+
+```sql
+CREATE TABLE menus (
+    menu_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    parent_menu_id BIGINT NULL,
+    page_id BIGINT NULL,
+    menu_name VARCHAR(150) NOT NULL,
+    icon VARCHAR(100),
+    sort_order INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+
+    FOREIGN KEY (parent_menu_id) REFERENCES menus(menu_id),
+    FOREIGN KEY (page_id) REFERENCES app_pages(page_id)
+);
+```
+
+---
+
+## 6. Permission Master
+
+```sql
+CREATE TABLE permissions (
+    permission_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    permission_code VARCHAR(50) NOT NULL UNIQUE,
+    permission_name VARCHAR(100) NOT NULL
+);
+```
+
+Seed data:
+
+```sql
+INSERT INTO permissions 
+(permission_code, permission_name)
+VALUES
+('VIEW', 'View'),
+('CREATE', 'Create'),
+('EDIT', 'Edit'),
+('UPDATE', 'Update'),
+('DELETE', 'Delete'),
+('APPROVE', 'Approve'),
+('EXPORT', 'Export'),
+('PRINT', 'Print');
+```
+
+---
+
+## 7. Role Page Permission Table
+
+This is the most important table.
+
+```sql
+CREATE TABLE role_permissions (
+    role_permission_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    role_id BIGINT NOT NULL,
+    page_id BIGINT NOT NULL,
+    permission_id BIGINT NOT NULL,
+    is_allowed BOOLEAN DEFAULT TRUE,
+
+    UNIQUE(role_id, page_id, permission_id),
+
+    FOREIGN KEY (role_id) REFERENCES roles(role_id),
+    FOREIGN KEY (page_id) REFERENCES app_pages(page_id),
+    FOREIGN KEY (permission_id) REFERENCES permissions(permission_id)
+);
+```
+
+---
+
+## 8. Sample Default Roles
+
+```sql
+INSERT INTO roles 
+(role_name, role_code, description)
+VALUES
+('Super Admin', 'SUPER_ADMIN', 'Full system access'),
+('Admin', 'ADMIN', 'Administrative access'),
+('Manager', 'MANAGER', 'Management level access'),
+('User', 'USER', 'Normal user access'),
+('Viewer', 'VIEWER', 'Read only access');
+```
+
+---
+
+## 9. Login Query Permission Load
+
+After login, backend should return:
+
+```json
+{
+  "user": {
+    "userId": 1,
+    "fullName": "Rayhan Ahmed",
+    "username": "rayhan"
+  },
+  "roles": ["ADMIN"],
+  "menus": [],
+  "permissions": {
+    "STUDENT_LIST": ["VIEW", "CREATE", "EDIT", "DELETE"],
+    "FUEL_ENTRY": ["VIEW", "CREATE", "UPDATE"],
+    "EXPENSE_REPORT": ["VIEW", "EXPORT", "PRINT"]
+  }
+}
+```
+
+---
+
+## 10. Permission Check SQL
+
+```sql
+SELECT 
+    ap.page_code,
+    p.permission_code
+FROM users u
+JOIN user_roles ur ON u.user_id = ur.user_id
+JOIN roles r ON ur.role_id = r.role_id
+JOIN role_permissions rp ON r.role_id = rp.role_id
+JOIN app_pages ap ON rp.page_id = ap.page_id
+JOIN permissions p ON rp.permission_id = p.permission_id
+WHERE u.user_id = ?
+  AND rp.is_allowed = TRUE
+  AND r.is_active = TRUE
+  AND ap.is_active = TRUE;
+```
+
+---
+
+## 11. Recommended Backend Middleware
+
+```js
+function checkPermission(pageCode, permissionCode) {
+  return async (req, res, next) => {
+    const userPermissions = req.user.permissions || {};
+
+    if (
+      userPermissions[pageCode] &&
+      userPermissions[pageCode].includes(permissionCode)
+    ) {
+      return next();
+    }
+
+    return res.status(403).json({
+      message: 'Access denied'
+    });
+  };
+}
+```
+
+Usage:
+
+```js
+router.post(
+  '/students',
+  checkPermission('STUDENT_ENTRY', 'CREATE'),
+  createStudent
+);
+
+router.delete(
+  '/students/:id',
+  checkPermission('STUDENT_LIST', 'DELETE'),
+  deleteStudent
+);
+```
+
+---
+
+## 12. Best Practice
+
+For every project, keep this module same:
+
+```text
+auth
+users
+roles
+menus
+permissions
+settings
+```
+
+Then add project-specific modules:
+
+```text
+School Management
+HRMS
+Bike Cost
+Expense Tracker
+Inventory
+Payroll
+```
+
+This design is clean, reusable, and scalable for all your Vue + Node.js + MySQL projects.
