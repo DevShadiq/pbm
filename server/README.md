@@ -1,8 +1,7 @@
 # PBM Backend
 
-This backend uses Express, JWT authentication, and MySQL.
-
-It also includes a reusable role/menu/permission module for any Vue + Node.js + MySQL app.
+The root backend entry point now starts the merged `school-management/backend` Express API.
+It uses JWT authentication, MySQL, uploads, and the school-management route modules.
 
 ## Setup
 
@@ -14,7 +13,7 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=your_password
-DB_NAME=pbm_education
+DB_NAME=pbm
 ```
 
 3. Start the API:
@@ -23,15 +22,15 @@ DB_NAME=pbm_education
 npm run dev:api
 ```
 
-The server automatically creates the database, tables, and seed data if the MySQL user has permission.
+The server no longer auto-creates or seeds the database on startup. Import the SQL schema/data explicitly before running the admin API.
 
 ## Default Admin
 
-Email: `admin@pbm.edu.bd`
+Use the admin account already present in your imported database, or run the backend's explicit admin helper if needed:
 
-Password: `Admin@12345`
-
-Change this password before using the system in production.
+```bash
+node school-management/backend/create-admin.js
+```
 
 ## Reusable Access-Control Tables
 

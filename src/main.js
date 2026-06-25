@@ -1,13 +1,18 @@
 import { createApp } from 'vue';
 import PublicSite from './App.vue';
-import LoginPage from './LoginPage.vue';
-import AdminPanel from './AdminPanel.vue';
 
 const path = window.location.pathname;
-const RootComponent = path.startsWith('/admin')
-  ? AdminPanel
-  : path.startsWith('/login')
-    ? LoginPage
-    : PublicSite;
 
-createApp(RootComponent).mount('#app');
+if (path.startsWith('/login')) {
+  window.location.replace('/admin/login');
+} else if (path.startsWith('/admin')) {
+  await import('../school-management/src/assets/main.css');
+  const [{ default: AdminApp }, { default: adminRouter }] = await Promise.all([
+    import('../school-management/src/App.vue'),
+    import('../school-management/src/router/index.js'),
+  ]);
+
+  createApp(AdminApp).use(adminRouter).mount('#app');
+} else {
+  createApp(PublicSite).mount('#app');
+}

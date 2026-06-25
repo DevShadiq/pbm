@@ -12,7 +12,7 @@
                 <a href="#" class="hover:text-gold-400 transition-colors"><i class="fab fa-facebook-f"></i></a>
                 <a href="#" class="hover:text-gold-400 transition-colors"><i class="fab fa-youtube"></i></a>
                 <a href="#" class="hover:text-gold-400 transition-colors"><i class="fab fa-twitter"></i></a>
-                <a href="/login" class="ml-2 inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-xs font-bold transition-colors">
+                <a href="/admin/login" class="ml-2 inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-xs font-bold transition-colors">
                     <i class="fas fa-user-shield"></i> Admin
                 </a>
                 <button @click="toggleDark" class="ml-2 w-7 h-7 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
