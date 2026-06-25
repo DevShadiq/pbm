@@ -316,6 +316,152 @@ CREATE TABLE academic_batches (
   CONSTRAINT uk_academic_batches UNIQUE (branch_id, academic_year_id, class_id, group_id, section_id, medium_id, shift_id)
 );
 
+
+
+/* =========================================================
+   Modified for bangla info
+   ========================================================= */
+
+
+ALTER TABLE mediums
+ADD COLUMN medium_name_bn VARCHAR(80) NULL AFTER medium_name;
+
+ALTER TABLE shifts
+ADD COLUMN shift_name_bn VARCHAR(80) NULL AFTER shift_name;
+
+
+ALTER TABLE class_levels
+ADD COLUMN class_name_bn VARCHAR(100) NULL AFTER class_name;
+
+ALTER TABLE `groups`
+ADD COLUMN group_name_bn VARCHAR(100) NULL AFTER group_name;
+
+ALTER TABLE sections
+ADD COLUMN section_name_bn VARCHAR(50) NULL AFTER section_name;
+
+INSERT INTO mediums
+(institution_id, medium_code, medium_name, medium_name_bn)
+VALUES
+(1, 'BAN', 'Bangla Version', 'বাংলা ভার্সন'),
+(1, 'ENGV', 'English Version', 'ইংরেজি ভার্সন'),
+(1, 'ENGM', 'English Medium', 'ইংরেজি মাধ্যম');
+
+INSERT INTO shifts
+(institution_id, shift_name, shift_name_bn, start_time, end_time)
+VALUES
+(1, 'Morning', 'মর্নিং', '07:30:00', '12:00:00'),
+(1, 'Day', 'ডে', '12:00:00', '17:00:00'),
+(1, 'Evening', 'ইভিনিং', '17:00:00', '21:00:00');
+
+
+INSERT INTO `groups`
+(institution_id, group_code, group_name, group_name_bn)
+VALUES
+(1, 'SCI', 'Science', 'বিজ্ঞান'),
+(1, 'BUS', 'Business Studies', 'ব্যবসায় শিক্ষা'),
+(1, 'HUM', 'Humanities', 'মানবিক'),
+(1, 'GEN', 'General', 'সাধারণ');
+
+
+INSERT INTO sections
+(institution_id, section_code, section_name, section_name_bn, capacity)
+VALUES
+(1, 'A', 'A', 'ক', 60),
+(1, 'B', 'B', 'খ', 60),
+(1, 'C', 'C', 'গ', 60);
+
+CREATE TABLE academic_levels (
+    level_id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    institution_id    BIGINT NULL,
+    level_code        VARCHAR(30) NOT NULL,
+    level_name        VARCHAR(100) NOT NULL,
+    level_name_bn     VARCHAR(100),
+    sort_order        INT,
+    status            VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+
+    CONSTRAINT uk_academic_levels
+        UNIQUE (institution_id, level_code)
+);
+
+ALTER TABLE class_levels
+ADD COLUMN class_name_bn VARCHAR(100) NULL AFTER class_name,
+ADD COLUMN level_id BIGINT NULL AFTER institution_id;
+
+ALTER TABLE class_levels
+ADD CONSTRAINT fk_class_levels_level
+FOREIGN KEY (level_id)
+REFERENCES academic_levels(level_id);
+
+INSERT INTO academic_levels
+(level_id, institution_id, level_code, level_name, level_name_bn, sort_order)
+VALUES
+(1, NULL, 'PRIMARY',   'Primary',            'প্রাথমিক',        1),
+(2, NULL, 'EBTEDAYI',  'Ebtedayi',           'ইবতেদায়ী',        2),
+(3, NULL, 'SECONDARY', 'Secondary',          'মাধ্যমিক',        3),
+(4, NULL, 'HSC',       'Higher Secondary',   'উচ্চ মাধ্যমিক',   4),
+(5, NULL, 'DEGREE',    'Degree Pass',        'ডিগ্রি',          5),
+(6, NULL, 'HONOURS',   'Honours',            'অনার্স',          6),
+(7, NULL, 'MASTERS',   'Masters',            'মাস্টার্স',       7);
+
+INSERT INTO class_levels
+(institution_id, level_id, class_code, class_name, class_name_bn, numeric_level)
+VALUES
+(1,1,'CLS01','Class One','প্রথম শ্রেণি',1),
+(1,1,'CLS02','Class Two','দ্বিতীয় শ্রেণি',2),
+(1,1,'CLS03','Class Three','তৃতীয় শ্রেণি',3),
+(1,1,'CLS04','Class Four','চতুর্থ শ্রেণি',4),
+(1,1,'CLS05','Class Five','পঞ্চম শ্রেণি',5);
+
+INSERT INTO class_levels
+(institution_id, level_id, class_code, class_name, class_name_bn, numeric_level)
+VALUES
+(1,2,'EBT01','Ebtedayi One','ইবতেদায়ী প্রথম',1),
+(1,2,'EBT02','Ebtedayi Two','ইবতেদায়ী দ্বিতীয়',2),
+(1,2,'EBT03','Ebtedayi Three','ইবতেদায়ী তৃতীয়',3),
+(1,2,'EBT04','Ebtedayi Four','ইবতেদায়ী চতুর্থ',4),
+(1,2,'EBT05','Ebtedayi Five','ইবতেদায়ী পঞ্চম',5);
+
+INSERT INTO class_levels
+(institution_id, level_id, class_code, class_name, class_name_bn, numeric_level)
+VALUES
+(1,3,'CLS06','Class Six','ষষ্ঠ শ্রেণি',6),
+(1,3,'CLS07','Class Seven','সপ্তম শ্রেণি',7),
+(1,3,'CLS08','Class Eight','অষ্টম শ্রেণি',8),
+(1,3,'CLS09','Class Nine','নবম শ্রেণি',9),
+(1,3,'CLS10','Class Ten','দশম শ্রেণি',10);
+
+
+INSERT INTO class_levels
+(institution_id, level_id, class_code, class_name, class_name_bn, numeric_level)
+VALUES
+(1,4,'XI','Class Eleven','একাদশ শ্রেণি',11),
+(1,4,'XII','Class Twelve','দ্বাদশ শ্রেণি',12);
+
+INSERT INTO class_levels
+(institution_id, level_id, class_code, class_name, class_name_bn, numeric_level)
+VALUES
+(1,5,'DEG1','Degree 1st Year','ডিগ্রি ১ম বর্ষ',1),
+(1,5,'DEG2','Degree 2nd Year','ডিগ্রি ২য় বর্ষ',2),
+(1,5,'DEG3','Degree 3rd Year','ডিগ্রি ৩য় বর্ষ',3);
+
+INSERT INTO class_levels
+(institution_id, level_id, class_code, class_name, class_name_bn, numeric_level)
+VALUES
+(1,6,'HON1','Honours 1st Year','অনার্স ১ম বর্ষ',1),
+(1,6,'HON2','Honours 2nd Year','অনার্স ২য় বর্ষ',2),
+(1,6,'HON3','Honours 3rd Year','অনার্স ৩য় বর্ষ',3),
+(1,6,'HON4','Honours 4th Year','অনার্স ৪র্থ বর্ষ',4);
+
+
+INSERT INTO class_levels
+(institution_id, level_id, class_code, class_name, class_name_bn, numeric_level)
+VALUES
+(1,7,'MAS1','Masters Part I','মাস্টার্স প্রথম পর্ব',1),
+(1,7,'MAS2','Masters Final','মাস্টার্স শেষ পর্ব',2);
+
+
+
+
 /* ============================================================
    4. STUDENT ADMISSION / PROFILE / GUARDIAN
    ============================================================ */

@@ -185,6 +185,7 @@ const lookups = reactive({
   shifts: [],
   classrooms: [],
   lookupTypes: [],
+  academicLevels: [],
 });
 
 const modules = [
@@ -273,6 +274,33 @@ const modules = [
   },
 
   {
+    key: "academicLevels",
+    title: "Academic Levels",
+    singleTitle: "Academic Level",
+    subtitle: "Primary, secondary, higher secondary, degree level setup",
+    icon: "🏷️",
+    endpoint: "/academic-levels",
+    id: "level_id",
+    fields: [
+      { name: "institution_id", label: "Institution", type: "select", source: "institutions" },
+      { name: "level_code", label: "Level Code", type: "text", required: true },
+      { name: "level_name", label: "Level Name", type: "text", required: true },
+      { name: "level_name_bn", label: "Level Name (Bangla)", type: "text", placeholder: "যেমন: মাধ্যমিক" },
+      { name: "sort_order", label: "Sort Order", type: "number" },
+      { name: "status", label: "Status", type: "select", options: statusOptions, required: true },
+    ],
+    columns: [
+      { key: "institution_id", label: "Institution" },
+      { key: "level_code", label: "Code" },
+      { key: "level_name", label: "Level Name" },
+      { key: "level_name_bn", label: "Bangla Name" },
+      { key: "sort_order", label: "Sort" },
+      { key: "status", label: "Status" },
+      { key: "actions", label: "Action" },
+    ],
+  },
+
+  {
     key: "classLevels",
     title: "Class Levels",
     singleTitle: "Class",
@@ -282,14 +310,18 @@ const modules = [
     id: "class_id",
     fields: [
       { name: "institution_id", label: "Institution", type: "select", source: "institutions", required: true },
+      { name: "level_id", label: "Academic Level", type: "select", source: "academicLevels" },
       { name: "class_code", label: "Class Code", type: "text", required: true },
       { name: "class_name", label: "Class Name", type: "text", required: true },
+      { name: "class_name_bn", label: "Class Name (Bangla)", type: "text", placeholder: "যেমন: ষষ্ঠ শ্রেণি" },
       { name: "numeric_level", label: "Numeric Level", type: "number" },
       { name: "status", label: "Status", type: "select", options: statusOptions, required: true },
     ],
     columns: [
       { key: "class_code", label: "Code" },
+      { key: "level_name", label: "Level" },
       { key: "class_name", label: "Class Name" },
+      { key: "class_name_bn", label: "Bangla Name" },
       { key: "numeric_level", label: "Level" },
       { key: "status", label: "Status" },
       { key: "actions", label: "Action" },
@@ -308,11 +340,13 @@ const modules = [
       { name: "institution_id", label: "Institution", type: "select", source: "institutions", required: true },
       { name: "group_code", label: "Group Code", type: "text", required: true },
       { name: "group_name", label: "Group Name", type: "text", required: true },
+      { name: "group_name_bn", label: "Group Name (Bangla)", type: "text", placeholder: "যেমন: বিজ্ঞান" },
       { name: "status", label: "Status", type: "select", options: statusOptions, required: true },
     ],
     columns: [
       { key: "group_code", label: "Code" },
       { key: "group_name", label: "Group Name" },
+      { key: "group_name_bn", label: "Bangla Name" },
       { key: "status", label: "Status" },
       { key: "actions", label: "Action" },
     ],
@@ -330,11 +364,15 @@ const modules = [
       { name: "institution_id", label: "Institution", type: "select", source: "institutions", required: true },
       { name: "section_code", label: "Section Code", type: "text", required: true },
       { name: "section_name", label: "Section Name", type: "text", required: true },
+      { name: "section_name_bn", label: "Section Name (Bangla)", type: "text", placeholder: "যেমন: ক" },
+      { name: "capacity", label: "Capacity", type: "number" },
       { name: "status", label: "Status", type: "select", options: statusOptions, required: true },
     ],
     columns: [
       { key: "section_code", label: "Code" },
       { key: "section_name", label: "Section Name" },
+      { key: "section_name_bn", label: "Bangla Name" },
+      { key: "capacity", label: "Capacity" },
       { key: "status", label: "Status" },
       { key: "actions", label: "Action" },
     ],
@@ -352,11 +390,13 @@ const modules = [
       { name: "institution_id", label: "Institution", type: "select", source: "institutions", required: true },
       { name: "medium_code", label: "Medium Code", type: "text", required: true },
       { name: "medium_name", label: "Medium Name", type: "text", required: true },
+      { name: "medium_name_bn", label: "Medium Name (Bangla)", type: "text", placeholder: "যেমন: বাংলা ভার্সন" },
       { name: "status", label: "Status", type: "select", options: statusOptions, required: true },
     ],
     columns: [
       { key: "medium_code", label: "Code" },
       { key: "medium_name", label: "Medium Name" },
+      { key: "medium_name_bn", label: "Bangla Name" },
       { key: "status", label: "Status" },
       { key: "actions", label: "Action" },
     ],
@@ -373,12 +413,14 @@ const modules = [
     fields: [
       { name: "institution_id", label: "Institution", type: "select", source: "institutions", required: true },
       { name: "shift_name", label: "Shift Name", type: "text", required: true },
+      { name: "shift_name_bn", label: "Shift Name (Bangla)", type: "text", placeholder: "যেমন: মর্নিং" },
       { name: "start_time", label: "Start Time", type: "time" },
       { name: "end_time", label: "End Time", type: "time" },
       { name: "status", label: "Status", type: "select", options: statusOptions, required: true },
     ],
     columns: [
       { key: "shift_name", label: "Shift Name" },
+      { key: "shift_name_bn", label: "Bangla Name" },
       { key: "start_time", label: "Start Time" },
       { key: "end_time", label: "End Time" },
       { key: "status", label: "Status" },
@@ -627,6 +669,7 @@ async function loadLookups() {
       shifts,
       classrooms,
       lookupTypes,
+      academicLevels,
     ] = await Promise.allSettled([
       api.get("/institutions"),
       api.get("/branches"),
@@ -638,6 +681,7 @@ async function loadLookups() {
       api.get("/shifts"),
       api.get("/classrooms"),
       api.get("/lookup-types"),
+      api.get("/academic-levels"),
     ]);
 
     lookups.institutions = normalize(institutions);
@@ -650,6 +694,7 @@ async function loadLookups() {
     lookups.shifts = normalize(shifts);
     lookups.classrooms = normalize(classrooms);
     lookups.lookupTypes = normalize(lookupTypes);
+    lookups.academicLevels = normalize(academicLevels);
     applySelectDefaults();
   } catch {
     // lookup loading error should not block the page
@@ -686,9 +731,22 @@ function getOptionLabel(source, item) {
     shifts: "shift_name",
     classrooms: "classroom_name",
     lookupTypes: "type_name",
+    academicLevels: "level_name",
   };
 
-  return item[labelMap[source]] || item.name || item.title || "N/A";
+  const primary = item[labelMap[source]] || item.name || item.title || "N/A";
+  const banglaMap = {
+    institutions: "institution_name_bn",
+    classLevels: "class_name_bn",
+    groups: "group_name_bn",
+    sections: "section_name_bn",
+    mediums: "medium_name_bn",
+    shifts: "shift_name_bn",
+    academicLevels: "level_name_bn",
+  };
+  const bangla = item[banglaMap[source]];
+
+  return bangla ? `${primary} - ${bangla}` : primary;
 }
 
 function getOptionValue(source, item) {
@@ -703,6 +761,7 @@ function getOptionValue(source, item) {
     shifts: "shift_id",
     classrooms: "classroom_id",
     lookupTypes: "lookup_type_id",
+    academicLevels: "level_id",
   };
 
   return item[valueMap[source]];

@@ -59,13 +59,30 @@ const tables = {
     id: "class_id",
     columns: [
       "institution_id",
+      "level_id",
       "class_code",
       "class_name",
+      "class_name_bn",
       "numeric_level",
       "status",
     ],
     required: ["institution_id", "class_code", "class_name", "status"],
     orderBy: "numeric_level NULLS LAST, class_id DESC",
+  },
+
+  "academic-levels": {
+    table: "academic_levels",
+    id: "level_id",
+    columns: [
+      "institution_id",
+      "level_code",
+      "level_name",
+      "level_name_bn",
+      "sort_order",
+      "status",
+    ],
+    required: ["level_code", "level_name", "status"],
+    orderBy: "sort_order NULLS LAST, level_id DESC",
   },
 
   "groups": {
@@ -75,6 +92,7 @@ const tables = {
       "institution_id",
       "group_code",
       "group_name",
+      "group_name_bn",
       "status",
     ],
     required: ["institution_id", "group_code", "group_name", "status"],
@@ -88,6 +106,8 @@ const tables = {
       "institution_id",
       "section_code",
       "section_name",
+      "section_name_bn",
+      "capacity",
       "status",
     ],
     required: ["institution_id", "section_code", "section_name", "status"],
@@ -101,6 +121,7 @@ const tables = {
       "institution_id",
       "medium_code",
       "medium_name",
+      "medium_name_bn",
       "status",
     ],
     required: ["institution_id", "medium_code", "medium_name", "status"],
@@ -113,6 +134,7 @@ const tables = {
     columns: [
       "institution_id",
       "shift_name",
+      "shift_name_bn",
       "start_time",
       "end_time",
       "status",
@@ -234,10 +256,15 @@ router.get("/:resource", async (req, res) => {
           b.branch_name,
           ay.year_name,
           cl.class_name,
+          cl.class_name_bn,
           g.group_name,
+          g.group_name_bn,
           s.section_name,
+          s.section_name_bn,
           m.medium_name,
-          sh.shift_name
+          m.medium_name_bn,
+          sh.shift_name,
+          sh.shift_name_bn
         FROM sms.academic_batches ab
         LEFT JOIN sms.branches b ON b.branch_id = ab.branch_id
         LEFT JOIN sms.academic_years ay ON ay.academic_year_id = ab.academic_year_id
@@ -257,6 +284,29 @@ router.get("/:resource", async (req, res) => {
         FROM sms.lookup_values lv
         JOIN sms.lookup_types lt ON lt.lookup_type_id = lv.lookup_type_id
         ORDER BY lv.sort_order, lv.lookup_value_id DESC
+      `;
+    } else if (resource === "academic-levels") {
+      sql = `
+        SELECT
+          level_id,
+          institution_id,
+          level_code,
+          level_name,
+          level_name_bn,
+          sort_order,
+          status
+        FROM academic_levels
+        ORDER BY sort_order IS NULL, sort_order, level_id DESC
+      `;
+    } else if (resource === "class-levels") {
+      sql = `
+        SELECT
+          cl.*,
+          al.level_name,
+          al.level_name_bn
+        FROM sms.class_levels cl
+        LEFT JOIN academic_levels al ON al.level_id = cl.level_id
+        ORDER BY cl.numeric_level IS NULL, cl.numeric_level, cl.class_id DESC
       `;
     } else {
       sql = `SELECT * FROM ${config.table} ORDER BY ${config.orderBy}`;
