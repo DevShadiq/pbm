@@ -568,7 +568,7 @@
 <script setup>
 
 import { reactive, ref, watch, onMounted } from "vue";
-import api from "../../services/api";
+import api, { getFileUrl } from "../../services/api";
 
 import BaseCard from "../common/BaseCard.vue";
 import BaseInput from "../common/BaseInput.vue";
@@ -576,6 +576,7 @@ import BaseSelect from "../common/BaseSelect.vue";
 import BaseDatePicker from "../common/BaseDatePicker.vue";
 import BaseButton from "../common/BaseButton.vue";
 import AlertMessage from "../common/AlertMessage.vue";
+import { getTodayIsoDate, toIsoDate } from "../../utils/dateFormat";
 
 const loading = ref(false);
 
@@ -594,7 +595,7 @@ const sections = ref([]);
 const mediums = ref([]);
 const shifts = ref([]);
 
-const today = new Date().toISOString().slice(0, 10);
+const today = getTodayIsoDate();
 
 const genderOptions = [
   { label: "Male", value: "MALE" },
@@ -1072,17 +1073,21 @@ const validateForm = () => {
 const buildPayload = () => {
   return {
     student: {
-      ...form.student
+      ...form.student,
+      date_of_birth: toIsoDate(form.student.date_of_birth) || null
     },
 
     admission: {
-      ...form.admission
+      ...form.admission,
+      admission_date: toIsoDate(form.admission.admission_date) || null
     },
 
     enrollment: {
       ...form.enrollment,
       branch_id: form.admission.branch_id,
-      academic_year_id: form.admission.academic_year_id
+      academic_year_id: form.admission.academic_year_id,
+      start_date: toIsoDate(form.enrollment.start_date) || null,
+      end_date: toIsoDate(form.enrollment.end_date) || null
     },
 
     guardians: form.guardians.map((item) => ({
@@ -1101,18 +1106,6 @@ const buildPayload = () => {
   };
 };
 
-
-const getFileUrl = (fileUrl) => {
-  if (!fileUrl) return "";
-
-  if (fileUrl.startsWith("http")) {
-    return fileUrl;
-  }
-
-  const baseURL = api.defaults.baseURL || "";
-
-  return baseURL.replace("/api", "") + fileUrl;
-};
 
 const uploadFile = async (file, type) => {
   const formData = new FormData();

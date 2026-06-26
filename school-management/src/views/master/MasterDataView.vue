@@ -136,6 +136,7 @@ import BaseButton from "../../components/common/BaseButton.vue";
 import BaseTable from "../../components/common/BaseTable.vue";
 import AlertMessage from "../../components/common/AlertMessage.vue";
 import LoadingSpinner from "../../components/common/LoadingSpinner.vue";
+import { toIsoDate } from "../../utils/dateFormat";
 
 const loading = ref(false);
 const showForm = ref(false);
@@ -236,8 +237,8 @@ const modules = [
     ],
     columns: [
       { key: "year_name", label: "Year" },
-      { key: "start_date", label: "Start Date" },
-      { key: "end_date", label: "End Date" },
+      { key: "start_date", label: "Start Date", type: "date" },
+      { key: "end_date", label: "End Date", type: "date" },
       { key: "is_current", label: "Current" },
       { key: "status", label: "Status" },
       { key: "actions", label: "Action" },
@@ -265,8 +266,8 @@ const modules = [
     columns: [
       { key: "session_name", label: "Session" },
       { key: "session_type", label: "Type" },
-      { key: "start_date", label: "Start Date" },
-      { key: "end_date", label: "End Date" },
+      { key: "start_date", label: "Start Date", type: "date" },
+      { key: "end_date", label: "End Date", type: "date" },
       { key: "is_current", label: "Current" },
       { key: "status", label: "Status" },
       { key: "actions", label: "Action" },
@@ -551,7 +552,8 @@ function openEdit(row) {
   resetForm();
 
   Object.keys(row).forEach((key) => {
-    form[key] = row[key];
+    const field = activeModule.value.fields.find((item) => item.name === key);
+    form[key] = field?.type === "date" ? toIsoDate(row[key]) : row[key];
   });
 
   showForm.value = true;
@@ -630,6 +632,10 @@ function preparePayload() {
 
     if (field.type === "number" && value !== null) {
       value = Number(value);
+    }
+
+    if (field.type === "date" && value !== null) {
+      value = toIsoDate(value) || null;
     }
 
     if (field.type === "select" && field.source && value !== null) {

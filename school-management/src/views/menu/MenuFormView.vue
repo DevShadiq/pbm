@@ -53,11 +53,31 @@
             placeholder="/students/admission"
           />
 
-          <BaseInput
-            v-model="form.icon_name"
-            label="Icon Name"
-            placeholder="users, menu, shield"
-          />
+          <div class="field icon-field">
+            <BaseInput
+              v-model="form.icon_name"
+              label="Icon Name"
+              placeholder="users, menu, shield"
+            />
+
+            <div class="icon-picker">
+              <div class="selected-icon">
+                <MenuIcon :name="form.icon_name" :code="form.menu_code" :title="form.menu_title" />
+              </div>
+
+              <button
+                v-for="icon in iconOptions"
+                :key="icon.value"
+                type="button"
+                class="icon-option"
+                :class="{ selected: form.icon_name === icon.value }"
+                :title="icon.label"
+                @click="selectIcon(icon.value)"
+              >
+                <MenuIcon :name="icon.value" :title="icon.label" />
+              </button>
+            </div>
+          </div>
 
           <BaseInput
             v-model="form.sort_order"
@@ -109,6 +129,7 @@ import BaseButton from "../../components/common/BaseButton.vue";
 import BaseCard from "../../components/common/BaseCard.vue";
 import AlertMessage from "../../components/common/AlertMessage.vue";
 import LoadingSpinner from "../../components/common/LoadingSpinner.vue";
+import MenuIcon from "../../components/common/MenuIcon.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -124,6 +145,24 @@ const message = ref("");
 const statusOptions = [
   { label: "ACTIVE", value: "ACTIVE" },
   { label: "INACTIVE", value: "INACTIVE" },
+];
+
+const iconOptions = [
+  { label: "Dashboard", value: "dashboard" },
+  { label: "Students", value: "students" },
+  { label: "Admission", value: "admission" },
+  { label: "Users", value: "users" },
+  { label: "Roles", value: "role" },
+  { label: "Permissions", value: "key" },
+  { label: "Menu", value: "menu" },
+  { label: "Institution", value: "building" },
+  { label: "Master Data", value: "database" },
+  { label: "Attendance", value: "attendance" },
+  { label: "Fees", value: "fees" },
+  { label: "Exam", value: "exam" },
+  { label: "Reports", value: "report" },
+  { label: "Notice", value: "notice" },
+  { label: "Settings", value: "settings" },
 ];
 
 const form = reactive({
@@ -174,6 +213,10 @@ function buildPayload() {
     is_visible: Boolean(form.is_visible),
     status: form.status,
   };
+}
+
+function selectIcon(iconName) {
+  form.icon_name = iconName;
 }
 
 async function loadMenus() {
@@ -277,6 +320,47 @@ onMounted(loadData);
 .checkbox-label input {
   width: 17px;
   height: 17px;
+}
+
+.icon-field {
+  gap: 10px;
+}
+
+.icon-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.selected-icon,
+.icon-option {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #1d4ed8;
+  background: #eff6ff;
+  box-shadow: inset 0 0 0 1px #bfdbfe;
+}
+
+.selected-icon {
+  color: #ffffff;
+  background: #1d4ed8;
+  box-shadow: 0 10px 18px rgba(29, 78, 216, 0.22);
+}
+
+.icon-option {
+  border: 0;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.icon-option:hover,
+.icon-option.selected {
+  color: #ffffff;
+  background: #2563eb;
+  transform: translateY(-1px);
 }
 
 .actions {

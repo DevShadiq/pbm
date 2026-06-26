@@ -19,7 +19,9 @@
       <template v-for="menu in menus" :key="menu.menu_id || menu.menu_code">
         <div v-if="menu.children && menu.children.length" class="menu-group">
           <button class="menu-parent" type="button" @click="toggle(menu.menu_code)">
-            <span class="menu-icon">{{ getMenuInitial(menu) }}</span>
+            <span class="menu-icon">
+              <MenuIcon :name="menu.icon_name" :code="menu.menu_code" :title="menu.menu_title" />
+            </span>
             <span class="menu-text">{{ menu.menu_title }}</span>
             <span class="menu-arrow">{{ opened[menu.menu_code] ? "−" : "+" }}</span>
           </button>
@@ -32,7 +34,9 @@
               class="menu-link"
               active-class="active"
             >
-              <span class="menu-icon">{{ getMenuInitial(child) }}</span>
+              <span class="menu-icon">
+                <MenuIcon :name="child.icon_name" :code="child.menu_code" :title="child.menu_title" />
+              </span>
               <span class="menu-text">{{ child.menu_title }}</span>
             </RouterLink>
           </div>
@@ -44,7 +48,9 @@
           class="menu-link"
           active-class="active"
         >
-          <span class="menu-icon">{{ getMenuInitial(menu) }}</span>
+          <span class="menu-icon">
+            <MenuIcon :name="menu.icon_name" :code="menu.menu_code" :title="menu.menu_title" />
+          </span>
           <span class="menu-text">{{ menu.menu_title }}</span>
         </RouterLink>
       </template>
@@ -55,6 +61,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import api from "../../services/api";
+import MenuIcon from "../common/MenuIcon.vue";
 
 const props = defineProps({
   collapsed: {
@@ -75,22 +82,26 @@ const fallbackMenus = [
     menu_code: "USERS",
     menu_title: "Users",
     route_path: "/users",
+    icon_name: "users",
     children: [],
   },
   {
     menu_code: "STUDENTS",
     menu_title: "Students",
     route_path: null,
+    icon_name: "students",
     children: [
       {
         menu_code: "STUDENT_LIST",
         menu_title: "Student List",
         route_path: "/students",
+        icon_name: "students",
       },
       {
         menu_code: "STUDENT_ADMISSION",
         menu_title: "Student Admission",
         route_path: "/students/admission",
+        icon_name: "admission",
       },
     ],
   },
@@ -106,10 +117,6 @@ const openParentMenus = () => {
   });
 
   opened.value = nextOpened;
-};
-
-const getMenuInitial = (menu) => {
-  return String(menu.menu_title || menu.menu_code || "?").trim().charAt(0).toUpperCase();
 };
 
 const setMenus = (nextMenus) => {
@@ -219,7 +226,7 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   padding: 11px 13px;
-  border-radius: 12px;
+  border-radius: 10px;
   color: #cbd5e1;
   background: transparent;
   border: 0;
@@ -240,25 +247,40 @@ onMounted(() => {
 
 .menu-arrow {
   margin-left: auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.15);
+  color: #e2e8f0;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  line-height: 1;
 }
 
 .menu-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.09);
+  color: #bfdbfe;
   display: grid;
   place-items: center;
-  font-size: 12px;
-  font-weight: 700;
-  flex: 0 0 24px;
+  flex: 0 0 34px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .menu-parent:hover,
 .menu-link:hover,
 .menu-link.active {
   background: #1d4ed8;
+  color: white;
+}
+
+.menu-parent:hover .menu-icon,
+.menu-link:hover .menu-icon,
+.menu-link.active .menu-icon {
+  background: rgba(255, 255, 255, 0.18);
   color: white;
 }
 

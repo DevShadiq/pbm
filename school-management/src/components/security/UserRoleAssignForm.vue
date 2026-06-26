@@ -107,6 +107,7 @@ import BaseButton from "../common/BaseButton.vue";
 import BaseCard from "../common/BaseCard.vue";
 import AlertMessage from "../common/AlertMessage.vue";
 import LoadingSpinner from "../common/LoadingSpinner.vue";
+import { formatDateForDisplay } from "../../utils/dateFormat";
 
 const users = ref([]);
 const roles = ref([]);
@@ -148,8 +149,7 @@ const branchOptions = computed(() => {
 });
 
 function formatDate(value) {
-  if (!value) return "-";
-  return new Date(value).toLocaleString();
+  return formatDateForDisplay(value, "-");
 }
 
 async function refreshCurrentAccess() {

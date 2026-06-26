@@ -28,7 +28,7 @@
         <div class="student-photo">
           <img
             v-if="student.photo_url"
-            :src="student.photo_url"
+            :src="getFileUrl(student.photo_url)"
             alt="Student Photo"
           />
           <span v-else>{{ initials }}</span>
@@ -208,7 +208,7 @@
                 <td>
                   <a
                     v-if="doc.file_url"
-                    :href="doc.file_url"
+                    :href="getFileUrl(doc.file_url)"
                     target="_blank"
                     class="doc-link"
                   >
@@ -253,6 +253,8 @@ import { computed, defineComponent, h } from "vue";
 
 import BaseCard from "../common/BaseCard.vue";
 import BaseButton from "../common/BaseButton.vue";
+import { getFileUrl } from "../../services/api";
+import { formatDateForDisplay } from "../../utils/dateFormat";
 
 const props = defineProps({
   profile: {
@@ -390,8 +392,7 @@ function value(input) {
 }
 
 function formatDate(input) {
-  if (!input) return "N/A";
-  return String(input).slice(0, 10);
+  return formatDateForDisplay(input, "N/A");
 }
 
 function guardianValue(item, key) {

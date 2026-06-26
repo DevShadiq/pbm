@@ -26,6 +26,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const uploadRoot = path.resolve(__dirname, "../uploads");
+const legacyUploadRoot = path.resolve(__dirname, "uploads");
+const cwdLegacyUploadRoot = path.resolve(process.cwd(), "src/uploads");
 const frontendDistCandidates = [
   path.resolve(__dirname, "../dist"),
   path.resolve(__dirname, "../../dist"),
@@ -34,14 +36,12 @@ const frontendDist = frontendDistCandidates.find((dir) =>
   fs.existsSync(path.join(dir, "index.html"))
 );
 
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
-
-
-
 app.use(cors());
 app.use(express.json());
 
 app.use("/uploads", express.static(uploadRoot));
+app.use("/uploads", express.static(legacyUploadRoot));
+app.use("/uploads", express.static(cwdLegacyUploadRoot));
 
 const generatedPublicSettings = {
   name_bn: "পয়লা বানিয়াবাড়ী ফাজিল মাদরাসা",

@@ -71,6 +71,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { formatDateForDisplay, isDateColumnKey } from "../../utils/dateFormat";
 
 const props = defineProps({
   columns: { type: Array, default: () => [] },
@@ -112,7 +113,9 @@ const toggleAll = event => {
 
 const formatValue = (row, column) => {
   const value = row[column.key]
-  return typeof column.formatter === 'function' ? column.formatter(value, row) : value
+  if (typeof column.formatter === 'function') return column.formatter(value, row)
+  if (column.type === 'date' || isDateColumnKey(column.key)) return formatDateForDisplay(value, value || '')
+  return value
 }
 </script>
 

@@ -54,7 +54,14 @@
               <td>{{ menu.menu_code }}</td>
               <td>{{ menu.parent_menu_title || "-" }}</td>
               <td>{{ menu.route_path || "-" }}</td>
-              <td>{{ menu.icon_name || "-" }}</td>
+              <td>
+                <div class="icon-cell">
+                  <span class="icon-preview">
+                    <MenuIcon :name="menu.icon_name" :code="menu.menu_code" :title="menu.menu_title" />
+                  </span>
+                  <span>{{ menu.icon_name || "auto" }}</span>
+                </div>
+              </td>
               <td>{{ menu.sort_order }}</td>
 
               <td>
@@ -102,6 +109,7 @@ import BaseCard from "../../components/common/BaseCard.vue";
 import BaseBadge from "../../components/common/BaseBadge.vue";
 import AlertMessage from "../../components/common/AlertMessage.vue";
 import LoadingSpinner from "../../components/common/LoadingSpinner.vue";
+import MenuIcon from "../../components/common/MenuIcon.vue";
 
 const menus = ref([]);
 const loading = ref(false);
@@ -182,6 +190,25 @@ td {
   border-bottom: 1px solid #f1f5f9;
   color: #374151;
   font-size: 14px;
+}
+
+.icon-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #475569;
+  font-weight: 700;
+}
+
+.icon-preview {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #1d4ed8;
+  background: #eff6ff;
+  box-shadow: inset 0 0 0 1px #bfdbfe;
 }
 
 .empty {

@@ -37,7 +37,7 @@
 
       <div>
         <span>Date of Birth</span>
-        <strong>{{ student.dateOfBirth || 'N/A' }}</strong>
+        <strong>{{ dateOfBirth }}</strong>
       </div>
 
       <div>
@@ -73,6 +73,7 @@ import { computed } from 'vue'
 import BaseCard from '@/components/common/BaseCard.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
 import StudentStatusBadge from './StudentStatusBadge.vue'
+import { formatDateForDisplay } from '@/utils/dateFormat'
 
 const props = defineProps({
   student: {
@@ -96,6 +97,10 @@ const initials = computed(() => {
     .join('')
     .slice(0, 2)
     .toUpperCase()
+})
+
+const dateOfBirth = computed(() => {
+  return formatDateForDisplay(props.student.dateOfBirth || props.student.date_of_birth, 'N/A')
 })
 </script>
 
