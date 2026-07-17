@@ -43,6 +43,14 @@ app.use("/uploads", express.static(uploadRoot));
 app.use("/uploads", express.static(legacyUploadRoot));
 app.use("/uploads", express.static(cwdLegacyUploadRoot));
 
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    status: "ok",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 const generatedPublicSettings = {
   name_bn: "পয়লা বানিয়াবাড়ী ফাজিল মাদরাসা",
   name_en: "PAILA BANIABARI FAZIL MADRASAH",

@@ -12,11 +12,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:3001',
+        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:5000',
         changeOrigin: true,
       },
       '/uploads': {
-        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:3001',
+        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:5000',
         changeOrigin: true,
       },
     },

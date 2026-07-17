@@ -14,5 +14,10 @@ if (path.startsWith('/login')) {
 
   createApp(AdminApp).use(adminRouter).mount('#app');
 } else {
+  await Promise.all([
+    import('./assets/public.css'),
+    import('@fortawesome/fontawesome-free/css/all.min.css'),
+  ]);
+
   createApp(PublicSite).mount('#app');
 }
