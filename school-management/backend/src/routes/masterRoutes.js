@@ -71,7 +71,7 @@ const tables = {
   },
 
   "academic-levels": {
-    table: "academic_levels",
+    table: "sms.academic_levels",
     id: "level_id",
     columns: [
       "institution_id",
@@ -141,6 +141,21 @@ const tables = {
     ],
     required: ["institution_id", "shift_name", "status"],
     orderBy: "shift_id DESC",
+  },
+
+  "classrooms": {
+    table: "sms.classrooms",
+    id: "classroom_id",
+    columns: [
+      "branch_id",
+      "room_no",
+      "building_name",
+      "floor_no",
+      "capacity",
+      "status",
+    ],
+    required: ["branch_id", "room_no", "status"],
+    orderBy: "classroom_id DESC",
   },
 
   "lookup-types": {
@@ -274,6 +289,15 @@ router.get("/:resource", async (req, res) => {
         LEFT JOIN sms.mediums m ON m.medium_id = ab.medium_id
         LEFT JOIN sms.shifts sh ON sh.shift_id = ab.shift_id
         ORDER BY ab.batch_id DESC
+      `;
+    } else if (resource === "classrooms") {
+      sql = `
+        SELECT
+          cr.*,
+          b.branch_name
+        FROM sms.classrooms cr
+        LEFT JOIN sms.branches b ON b.branch_id = cr.branch_id
+        ORDER BY cr.classroom_id DESC
       `;
     } else if (resource === "lookup-values") {
       sql = `

@@ -7,14 +7,21 @@ CREATE TABLE institutions (
   institution_id      BIGINT AUTO_INCREMENT PRIMARY KEY,
   institution_code    VARCHAR(30) UNIQUE NOT NULL,
   institution_name    VARCHAR(200) NOT NULL,
+  institution_name_bn VARCHAR(200),
+  short_name_bn       VARCHAR(100),
   institution_type    VARCHAR(50) NOT NULL, -- School, College, Madrasa, Coaching, etc.
   eiin_no             VARCHAR(50),
   registration_no     VARCHAR(80),
   phone               VARCHAR(30),
+  phone_bn            VARCHAR(30),
   email               VARCHAR(150),
   website             VARCHAR(150),
   logo_url            TEXT,
   address_line        TEXT,
+  address_line_bn     TEXT,
+  district_bn         VARCHAR(100),
+  upazila_bn          VARCHAR(100),
+  post_office_bn      VARCHAR(100),
   status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -201,6 +208,7 @@ CREATE TABLE mediums (
   institution_id      BIGINT REFERENCES institutions(institution_id) ON DELETE CASCADE,
   medium_code         VARCHAR(30) NOT NULL,
   medium_name         VARCHAR(80) NOT NULL, -- Bangla, English Version, English Medium
+  medium_name_bn      VARCHAR(80),
   status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   CONSTRAINT uk_mediums UNIQUE (institution_id, medium_name),
   CONSTRAINT uk_mediums_code UNIQUE (institution_id, medium_code)
@@ -210,17 +218,33 @@ CREATE TABLE shifts (
   shift_id            BIGINT AUTO_INCREMENT PRIMARY KEY,
   institution_id      BIGINT NOT NULL REFERENCES institutions(institution_id) ON DELETE CASCADE,
   shift_name          VARCHAR(80) NOT NULL, -- Morning, Day, Evening
+  shift_name_bn       VARCHAR(80),
   start_time          TIME,
   end_time            TIME,
   status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   CONSTRAINT uk_shifts UNIQUE (institution_id, shift_name)
 );
 
+CREATE TABLE academic_levels (
+  level_id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+  institution_id      BIGINT REFERENCES institutions(institution_id) ON DELETE CASCADE,
+  level_code          VARCHAR(30) NOT NULL,
+  level_name          VARCHAR(100) NOT NULL,
+  level_name_bn       VARCHAR(100),
+  sort_order          INT,
+  status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+  created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT uk_academic_levels_code UNIQUE (institution_id, level_code)
+);
+
 CREATE TABLE class_levels (
   class_id            BIGINT AUTO_INCREMENT PRIMARY KEY,
   institution_id      BIGINT NOT NULL REFERENCES institutions(institution_id) ON DELETE CASCADE,
+  level_id            BIGINT REFERENCES academic_levels(level_id) ON DELETE SET NULL,
   class_code          VARCHAR(30) NOT NULL,
   class_name          VARCHAR(100) NOT NULL, -- Play, One, Ten, HSC 1st Year
+  class_name_bn       VARCHAR(100),
   numeric_level       INT,
   status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -233,6 +257,7 @@ CREATE TABLE `groups` (
   institution_id      BIGINT NOT NULL REFERENCES institutions(institution_id) ON DELETE CASCADE,
   group_code          VARCHAR(30) NOT NULL,
   group_name          VARCHAR(100) NOT NULL, -- Science, Business Studies, Humanities, General
+  group_name_bn       VARCHAR(100),
   status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   CONSTRAINT uk_groups UNIQUE (institution_id, group_name),
   CONSTRAINT uk_groups_code UNIQUE (institution_id, group_code)
@@ -243,6 +268,7 @@ CREATE TABLE sections (
   institution_id      BIGINT NOT NULL REFERENCES institutions(institution_id) ON DELETE CASCADE,
   section_code        VARCHAR(30) NOT NULL,
   section_name        VARCHAR(50) NOT NULL, -- A, B, C
+  section_name_bn     VARCHAR(50),
   capacity            INT,
   status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   CONSTRAINT uk_sections UNIQUE (institution_id, section_name),

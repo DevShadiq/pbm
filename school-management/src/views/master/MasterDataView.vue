@@ -430,6 +430,33 @@ const modules = [
   },
 
   {
+    key: "classrooms",
+    title: "Classrooms",
+    singleTitle: "Classroom",
+    subtitle: "Room, building, floor and capacity setup",
+    icon: "🏛️",
+    endpoint: "/classrooms",
+    id: "classroom_id",
+    fields: [
+      { name: "branch_id", label: "Branch", type: "select", source: "branches", required: true },
+      { name: "room_no", label: "Room No.", type: "text", required: true },
+      { name: "building_name", label: "Building Name", type: "text" },
+      { name: "floor_no", label: "Floor No.", type: "text" },
+      { name: "capacity", label: "Capacity", type: "number" },
+      { name: "status", label: "Status", type: "select", options: statusOptions, required: true },
+    ],
+    columns: [
+      { key: "room_no", label: "Room" },
+      { key: "branch_name", label: "Branch" },
+      { key: "building_name", label: "Building" },
+      { key: "floor_no", label: "Floor" },
+      { key: "capacity", label: "Capacity" },
+      { key: "status", label: "Status" },
+      { key: "actions", label: "Action" },
+    ],
+  },
+
+  {
     key: "academicBatches",
     title: "Academic Batches",
     singleTitle: "Batch",
@@ -740,7 +767,9 @@ function getOptionLabel(source, item) {
     academicLevels: "level_name",
   };
 
-  const primary = item[labelMap[source]] || item.name || item.title || "N/A";
+  const primary = source === "classrooms"
+    ? `Room ${item.room_no || "-"}${item.branch_name ? ` - ${item.branch_name}` : ""}`
+    : item[labelMap[source]] || item.name || item.title || "N/A";
   const banglaMap = {
     institutions: "institution_name_bn",
     classLevels: "class_name_bn",

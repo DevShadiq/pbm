@@ -6,6 +6,22 @@ import { requirePermission } from "../middleware/permissionMiddleware.js";
 
 const router = express.Router();
 
+async function getActiveRole(userType, institutionId) {
+  const result = await pool.query(
+    `
+    SELECT role_id, role_code
+    FROM sms.roles
+    WHERE UPPER(role_code) = UPPER($1)
+      AND status = 'ACTIVE'
+      AND ($2 IS NULL OR institution_id = $2)
+    LIMIT 1
+    `,
+    [userType, institutionId]
+  );
+
+  return result.rows[0] || null;
+}
+
 router.get(
   "/",
   verifyToken,
@@ -168,7 +184,9 @@ router.post(
         is_active,
       } = req.body;
 
-      if (!username || !password || !full_name || !user_type) {
+      const normalizedUserType = String(user_type || "").trim().toUpperCase();
+
+      if (!username || !password || !full_name || !normalizedUserType) {
         return res.status(400).json({
           success: false,
           message:
@@ -176,23 +194,7 @@ router.post(
         });
       }
 
-      const allowedTypes = [
-        "SUPER_ADMIN",
-        "ADMIN",
-        "TEACHER",
-        "STAFF",
-        "STUDENT",
-        "GUARDIAN",
-      ];
-
-      if (!allowedTypes.includes(user_type)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid user type",
-        });
-      }
-
-      if (!req.user.is_super_admin && user_type === "SUPER_ADMIN") {
+      if (!req.user.is_super_admin && normalizedUserType === "SUPER_ADMIN") {
         return res.status(403).json({
           success: false,
           message: "Only super admin can create super admin user",
@@ -202,6 +204,14 @@ router.post(
       const finalInstitutionId = req.user.is_super_admin
         ? institution_id || null
         : req.user.institution_id;
+
+      const role = await getActiveRole(normalizedUserType, finalInstitutionId);
+      if (!role) {
+        return res.status(400).json({
+          success: false,
+          message: "User type must match an active role for the institution.",
+        });
+      }
 
       const finalIsSuperAdmin = req.user.is_super_admin
         ? is_super_admin || false
@@ -249,7 +259,7 @@ router.post(
           mobile || null,
           passwordHash,
           full_name,
-          user_type,
+          normalizedUserType,
           avatar_url || null,
           finalIsSuperAdmin,
           is_active ?? true,
@@ -299,30 +309,16 @@ router.put(
         is_active,
       } = req.body;
 
-      if (!username || !full_name || !user_type) {
+      const normalizedUserType = String(user_type || "").trim().toUpperCase();
+
+      if (!username || !full_name || !normalizedUserType) {
         return res.status(400).json({
           success: false,
           message: "Username, full name and user type are required",
         });
       }
 
-      const allowedTypes = [
-        "SUPER_ADMIN",
-        "ADMIN",
-        "TEACHER",
-        "STAFF",
-        "STUDENT",
-        "GUARDIAN",
-      ];
-
-      if (!allowedTypes.includes(user_type)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid user type",
-        });
-      }
-
-      if (!req.user.is_super_admin && user_type === "SUPER_ADMIN") {
+      if (!req.user.is_super_admin && normalizedUserType === "SUPER_ADMIN") {
         return res.status(403).json({
           success: false,
           message: "Only super admin can update super admin user",
@@ -332,6 +328,14 @@ router.put(
       const finalInstitutionId = req.user.is_super_admin
         ? institution_id || null
         : req.user.institution_id;
+
+      const role = await getActiveRole(normalizedUserType, finalInstitutionId);
+      if (!role) {
+        return res.status(400).json({
+          success: false,
+          message: "User type must match an active role for the institution.",
+        });
+      }
 
       const finalIsSuperAdmin = req.user.is_super_admin
         ? is_super_admin || false
@@ -381,7 +385,7 @@ router.put(
               mobile || null,
               passwordHash,
               full_name,
-              user_type,
+              normalizedUserType,
               avatar_url || null,
               finalIsSuperAdmin,
               is_active ?? true,
@@ -428,7 +432,7 @@ router.put(
               mobile || null,
               passwordHash,
               full_name,
-              user_type,
+              normalizedUserType,
               avatar_url || null,
               finalIsSuperAdmin,
               is_active ?? true,
@@ -474,7 +478,7 @@ router.put(
               email || null,
               mobile || null,
               full_name,
-              user_type,
+              normalizedUserType,
               avatar_url || null,
               finalIsSuperAdmin,
               is_active ?? true,
@@ -518,7 +522,7 @@ router.put(
               email || null,
               mobile || null,
               full_name,
-              user_type,
+              normalizedUserType,
               avatar_url || null,
               finalIsSuperAdmin,
               is_active ?? true,
@@ -548,6 +552,65 @@ router.put(
         return res.status(409).json({
           success: false,
           message: "Username or email already exists",
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: "Server error",
+      });
+    }
+  }
+);
+
+router.delete(
+  "/:user_id",
+  verifyToken,
+  requirePermission("user.management", "delete"),
+  async (req, res) => {
+    try {
+      const targetUserId = Number(req.params.user_id);
+
+      if (!Number.isInteger(targetUserId) || targetUserId <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "A valid user ID is required",
+        });
+      }
+
+      if (targetUserId === req.user.user_id) {
+        return res.status(400).json({
+          success: false,
+          message: "You cannot delete your own account.",
+        });
+      }
+
+      const sql = req.user.is_super_admin
+        ? "DELETE FROM sms.app_users WHERE user_id = $1 RETURNING user_id"
+        : "DELETE FROM sms.app_users WHERE user_id = $1 AND institution_id = $2 RETURNING user_id";
+      const values = req.user.is_super_admin
+        ? [targetUserId]
+        : [targetUserId, req.user.institution_id];
+      const result = await pool.query(sql, values);
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: "User deleted successfully",
+      });
+    } catch (error) {
+      console.error("User delete error:", error);
+
+      if (error.code === "ER_ROW_IS_REFERENCED_2") {
+        return res.status(409).json({
+          success: false,
+          message: "This user cannot be deleted because it is referenced by other records.",
         });
       }
 

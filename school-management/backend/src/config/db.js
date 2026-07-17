@@ -19,6 +19,7 @@ const primaryKeys = {
   branches: "branch_id",
   academic_years: "academic_year_id",
   academic_sessions: "session_id",
+  academic_levels: "level_id",
   lookup_types: "lookup_type_id",
   lookup_values: "lookup_value_id",
   app_users: "user_id",

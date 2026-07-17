@@ -92,8 +92,8 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, watch } from "vue";
-import { userApi } from "../../services/api";
+import { computed, onMounted, reactive, ref, watch } from "vue";
+import { roleApi, userApi } from "../../services/api";
 
 import BaseInput from "../common/BaseInput.vue";
 import BaseSelect from "../common/BaseSelect.vue";
@@ -114,17 +114,20 @@ const saving = ref(false);
 const message = ref("");
 
 const statusOptions = [
-  { label: "Active", value: true },
-  { label: "Inactive", value: false },
+  { label: "Active", value: "true" },
+  { label: "Inactive", value: "false" },
 ];
 
-const userTypeOptions = [
-  { label: "Admin", value: "ADMIN" },
-  { label: "Teacher", value: "TEACHER" },
-  { label: "Staff", value: "STAFF" },
-  { label: "Student", value: "STUDENT" },
-  { label: "Guardian", value: "GUARDIAN" },
-];
+const roles = ref([]);
+
+const userTypeOptions = computed(() => {
+  return roles.value
+    .filter((role) => role.status === "ACTIVE")
+    .map((role) => ({
+      label: `${role.role_name} - ${role.role_code}`,
+      value: role.role_code,
+    }));
+});
 
 const form = reactive({
   institution_id: "",
@@ -135,7 +138,7 @@ const form = reactive({
   mobile: "",
   user_type: "STAFF",
   password: "",
-  is_active: true,
+  is_active: "true",
 });
 
 function resetForm() {
@@ -147,7 +150,7 @@ function resetForm() {
   form.mobile = "";
   form.user_type = "STAFF";
   form.password = "";
-  form.is_active = true;
+  form.is_active = "true";
 }
 
 function fillForm(data) {
@@ -157,9 +160,11 @@ function fillForm(data) {
   form.full_name = data.full_name || data.name || "";
   form.email = data.email || "";
   form.mobile = data.mobile || data.mobile_no || data.phone || "";
-  form.user_type = data.user_type || "STAFF";
+  form.user_type = String(data.user_type || "STAFF").toUpperCase();
   form.password = "";
-  form.is_active = Boolean(data.is_active ?? true);
+  form.is_active = [false, 0, "0", "false"].includes(data.is_active)
+    ? "false"
+    : "true";
 }
 
 function buildPayload() {
@@ -171,7 +176,7 @@ function buildPayload() {
     email: form.email || null,
     mobile: form.mobile || null,
     user_type: form.user_type,
-    is_active: form.is_active === true || form.is_active === "true",
+    is_active: form.is_active === "true",
   };
 
   if (form.password) {
@@ -189,6 +194,15 @@ async function loadUser() {
     fillForm(res.data.data || res.data.user);
   } catch (error) {
     message.value = error.response?.data?.message || "Failed to load user";
+  }
+}
+
+async function loadRoles() {
+  try {
+    const response = await roleApi.getAll();
+    roles.value = response.data.data || [];
+  } catch (error) {
+    message.value = error.response?.data?.message || "Failed to load roles";
   }
 }
 
@@ -224,7 +238,10 @@ watch(
   }
 );
 
-onMounted(loadUser);
+onMounted(async () => {
+  await loadRoles();
+  await loadUser();
+});
 </script>
 
 <style scoped>

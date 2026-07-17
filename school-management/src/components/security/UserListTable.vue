@@ -43,10 +43,10 @@
             <td>{{ user.username }}</td>
             <td>{{ user.full_name || user.name || "-" }}</td>
             <td>{{ user.email || "-" }}</td>
-            <td>{{ user.mobile_no || user.phone || "-" }}</td>
+            <td>{{ user.mobile || user.mobile_no || user.phone || "-" }}</td>
             <td>
-              <BaseBadge :type="user.status === 'ACTIVE' ? 'success' : 'danger'">
-                {{ user.status }}
+              <BaseBadge :type="isUserActive(user) ? 'success' : 'danger'">
+                {{ isUserActive(user) ? "ACTIVE" : "INACTIVE" }}
               </BaseBadge>
             </td>
             <td class="text-right">
@@ -81,13 +81,17 @@ const users = ref([]);
 const loading = ref(false);
 const message = ref("");
 
+function isUserActive(user) {
+  return ![false, 0, "0", "false"].includes(user.is_active);
+}
+
 async function loadUsers() {
   loading.value = true;
   message.value = "";
 
   try {
     const res = await userApi.getAll();
-    users.value = res.data.data || [];
+    users.value = res.data.users || res.data.data || [];
   } catch (error) {
     message.value = error.response?.data?.message || "Failed to load users";
   } finally {
