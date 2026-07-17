@@ -500,6 +500,7 @@ CREATE TABLE departments (
   institution_id      BIGINT NOT NULL REFERENCES institutions(institution_id) ON DELETE CASCADE,
   department_code     VARCHAR(30) NOT NULL,
   department_name     VARCHAR(120) NOT NULL,
+  department_name_bn  VARCHAR(120),
   status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   CONSTRAINT uk_departments UNIQUE (institution_id, department_code)
 );
@@ -509,6 +510,7 @@ CREATE TABLE designations (
   institution_id      BIGINT NOT NULL REFERENCES institutions(institution_id) ON DELETE CASCADE,
   designation_code    VARCHAR(30) NOT NULL,
   designation_name    VARCHAR(120) NOT NULL,
+  designation_name_bn VARCHAR(120),
   status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   CONSTRAINT uk_designations UNIQUE (institution_id, designation_code)
 );
@@ -520,7 +522,9 @@ CREATE TABLE employees (
   user_id             BIGINT UNIQUE REFERENCES app_users(user_id) ON DELETE SET NULL,
   employee_no         VARCHAR(50) NOT NULL,
   first_name          VARCHAR(100) NOT NULL,
+  first_name_bn       VARCHAR(100),
   last_name           VARCHAR(100),
+  last_name_bn        VARCHAR(100),
   full_name           VARCHAR(180) GENERATED ALWAYS AS (TRIM(CONCAT(COALESCE(first_name,''), ' ', COALESCE(last_name,'')))) STORED,
   employee_type       VARCHAR(30) NOT NULL DEFAULT 'STAFF', -- TEACHER, STAFF, ADMIN
   department_id       BIGINT REFERENCES departments(department_id),
@@ -592,6 +596,8 @@ CREATE TABLE employee_leave_applications (
   updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT chk_leave_dates CHECK (to_date >= from_date)
 );
+
+
 
 /* ============================================================
    6. ATTENDANCE
@@ -1631,6 +1637,35 @@ END$$
 DELIMITER ;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+/* ============================================================
+   EMPLOYEE MANAGEMENT SECURITY SEED
+   Super administrators receive all active permissions and menus
+   through the is_super_admin access path in the application.
+   ============================================================ */
+
+INSERT INTO permissions
+  (permission_code, permission_name, module_name, description, status)
+VALUES
+  ('employee.management', 'Employee Management', 'HR',
+   'Manage departments, designations, and teacher, staff, or administrator records', 'ACTIVE')
+ON DUPLICATE KEY UPDATE
+  permission_name = VALUES(permission_name),
+  module_name = VALUES(module_name),
+  description = VALUES(description),
+  status = 'ACTIVE';
+
+INSERT INTO menus
+  (parent_menu_id, menu_code, menu_title, route_path, icon_name, sort_order, is_visible, status)
+VALUES
+  (NULL, 'EMPLOYEE_MANAGEMENT', 'Employee Management', '/employees', 'employee', 40, TRUE, 'ACTIVE')
+ON DUPLICATE KEY UPDATE
+  menu_title = VALUES(menu_title),
+  route_path = VALUES(route_path),
+  icon_name = VALUES(icon_name),
+  sort_order = VALUES(sort_order),
+  is_visible = VALUES(is_visible),
+  status = 'ACTIVE';
 
 /* ============================================================
    BASIC CHECK QUERY

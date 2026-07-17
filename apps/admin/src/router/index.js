@@ -26,6 +26,7 @@ import StudentListView from '../views/student/StudentListView.vue'
 import StudentAdmissionView from '../views/student/StudentAdmissionView.vue'
 import StudentProfileView from '../views/student/StudentProfileView.vue'
 import StudentEditView from "../views/student/StudentEditView.vue";
+import EmployeeManagementView from "../views/employee/EmployeeManagementView.vue";
 
 
 
@@ -283,6 +284,16 @@ const routes = [
   meta: {
     permission: "student.management",
     action: "update",
+  },
+}
+,
+{
+  path: "employees",
+  name: "EmployeeManagement",
+  component: EmployeeManagementView,
+  meta: {
+    permission: "employee.management",
+    action: "view",
   },
 }
     

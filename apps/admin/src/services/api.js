@@ -230,6 +230,24 @@ export const permissionApi = {
   },
 };
 
+export const employeeApi = {
+  getEmployees(params = {}) { return api.get("/employees", { params }); },
+  getEmployee(id) { return api.get(`/employees/${id}`); },
+  createEmployee(data) { return api.post("/employees", data); },
+  updateEmployee(id, data) { return api.put(`/employees/${id}`, data); },
+  deleteEmployee(id) { return api.delete(`/employees/${id}`); },
+  uploadPhoto(formData) { return api.post("/employees/upload-photo", formData, { headers: { "Content-Type": "multipart/form-data" } }); },
+  getDepartments(params = {}) { return api.get("/employees/departments", { params }); },
+  createDepartment(data) { return api.post("/employees/departments", data); },
+  updateDepartment(id, data) { return api.put(`/employees/departments/${id}`, data); },
+  deleteDepartment(id) { return api.delete(`/employees/departments/${id}`); },
+  getDesignations(params = {}) { return api.get("/employees/designations", { params }); },
+  createDesignation(data) { return api.post("/employees/designations", data); },
+  updateDesignation(id, data) { return api.put(`/employees/designations/${id}`, data); },
+  deleteDesignation(id) { return api.delete(`/employees/designations/${id}`); },
+  getLookups(institutionId) { return api.get("/employees/lookups", { params: { institution_id: institutionId } }); },
+};
+
 export const roleMenuApi = {
   getMenus() {
     return api.get("/security/menus");

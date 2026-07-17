@@ -18,6 +18,17 @@ const ensureDir = (dir) => {
   }
 };
 
+const safeFilePart = (value, fallback = "file") => {
+  const normalized = String(value || "")
+    .trim()
+    .replace(/[^a-zA-Z0-9-_]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 50);
+
+  return normalized || fallback;
+};
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const type = req.params.type;
@@ -39,13 +50,17 @@ const storage = multer.diskStorage({
   },
 
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const safeName = file.originalname
-      .replace(ext, "")
-      .replace(/[^a-zA-Z0-9-_]/g, "-")
-      .slice(0, 40);
+    const extension = path.extname(file.originalname).toLowerCase();
+    const originalName = safeFilePart(path.basename(file.originalname, extension));
+    const needsStudentNo = ["student-photo", "document"].includes(req.params.type);
+    const studentNo = safeFilePart(req.body?.student_no, "");
 
-    cb(null, `${Date.now()}-${safeName}${ext}`);
+    if (needsStudentNo && !studentNo) {
+      return cb(new Error("Student number is required before uploading a photo or document"));
+    }
+
+    const prefix = needsStudentNo ? `${studentNo}-${req.params.type}` : req.params.type || "file";
+    cb(null, `${prefix}-${Date.now()}-${originalName}${extension}`);
   }
 });
 
@@ -80,7 +95,7 @@ const upload = multer({
    POST /api/student-admissions/upload/:type
    type = student-photo | guardian-photo | document
 ========================================================= */
-router.post("/upload/:type", upload.single("file"), (req, res) => {
+router.post("/upload/:type", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -102,6 +117,10 @@ router.post("/upload/:type", upload.single("file"), (req, res) => {
     }
 
     const fileUrl = `/uploads/${folder}/${req.file.filename}`;
+
+    // A replacement upload can safely remove the old local file after the new
+    // file is stored. External URLs are ignored by deleteLocalUploadFiles.
+    await deleteLocalUploadFiles([req.body?.previous_file_url]);
 
     return res.json({
       success: true,
@@ -129,6 +148,78 @@ const toNull = (value) => {
   if (value === "" || value === undefined) return null;
   return value;
 };
+
+// Only remove files that are stored by this API under its upload directory.
+// URLs pointing to another host, or malformed paths, are deliberately ignored.
+const localUploadPath = (fileUrl) => {
+  if (typeof fileUrl !== "string" || !fileUrl) return null;
+
+  let pathname;
+  try {
+    pathname = new URL(fileUrl, "http://localhost").pathname;
+  } catch {
+    return null;
+  }
+
+  if (!pathname.startsWith("/uploads/")) return null;
+
+  const candidate = path.resolve(uploadRoot, `.${pathname.slice("/uploads".length)}`);
+  const relativePath = path.relative(uploadRoot, candidate);
+
+  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) return null;
+
+  return candidate;
+};
+
+const deleteLocalUploadFiles = async (fileUrls) => {
+  const files = [...new Set(fileUrls.map(localUploadPath).filter(Boolean))];
+
+  await Promise.all(
+    files.map(async (file) => {
+      try {
+        await fs.promises.unlink(file);
+      } catch (error) {
+        if (error.code !== "ENOENT") {
+          console.error(`Failed to remove uploaded file ${file}:`, error);
+        }
+      }
+    })
+  );
+};
+
+router.delete("/uploads", async (req, res) => {
+  const studentNo = safeFilePart(req.body?.student_no, "");
+  const fileUrl = req.body?.file_url;
+  const localPath = localUploadPath(fileUrl);
+
+  if (!studentNo || !localPath || !path.basename(localPath).startsWith(`${studentNo}-`)) {
+    return res.status(400).json({ success: false, message: "Invalid student upload" });
+  }
+
+  await deleteLocalUploadFiles([fileUrl]);
+  return res.json({ success: true, message: "Uploaded file removed successfully" });
+});
+
+router.delete("/documents/:documentId", async (req, res) => {
+  try {
+    const documentResult = await pool.query(
+      "SELECT file_url FROM sms.student_documents WHERE document_id = $1",
+      [req.params.documentId]
+    );
+
+    if (!documentResult.rowCount) {
+      return res.status(404).json({ success: false, message: "Document not found" });
+    }
+
+    await pool.query("DELETE FROM sms.student_documents WHERE document_id = $1", [req.params.documentId]);
+    await deleteLocalUploadFiles([documentResult.rows[0].file_url]);
+
+    return res.json({ success: true, message: "Document removed successfully" });
+  } catch (error) {
+    console.error("Student document delete error:", error);
+    return res.status(500).json({ success: false, message: "Failed to remove document" });
+  }
+});
 
 const toBool = (value) => value === true || value === "true";
 
@@ -535,7 +626,8 @@ router.get("/full/:studentId", async (req, res) => {
       });
     }
 
-    const admissionResult = await pool.query(
+    const [admissionResult, enrollmentResult, guardiansResult, addressesResult, documentsResult] = await Promise.all([
+      pool.query(
       `
       SELECT *
       FROM sms.student_admissions
@@ -544,9 +636,9 @@ router.get("/full/:studentId", async (req, res) => {
       LIMIT 1
       `,
       [studentId]
-    );
+      ),
 
-    const enrollmentResult = await pool.query(
+      pool.query(
       `
       SELECT *
       FROM sms.student_enrollments
@@ -555,9 +647,9 @@ router.get("/full/:studentId", async (req, res) => {
       LIMIT 1
       `,
       [studentId]
-    );
+      ),
 
-    const guardiansResult = await pool.query(
+      pool.query(
       `
       SELECT
         sg.student_guardian_id,
@@ -572,9 +664,9 @@ router.get("/full/:studentId", async (req, res) => {
       ORDER BY sg.student_guardian_id
       `,
       [studentId]
-    );
+      ),
 
-    const addressesResult = await pool.query(
+      pool.query(
       `
       SELECT *
       FROM sms.student_addresses
@@ -582,9 +674,9 @@ router.get("/full/:studentId", async (req, res) => {
       ORDER BY address_type
       `,
       [studentId]
-    );
+      ),
 
-    const documentsResult = await pool.query(
+      pool.query(
       `
       SELECT *
       FROM sms.student_documents
@@ -592,7 +684,8 @@ router.get("/full/:studentId", async (req, res) => {
       ORDER BY document_id
       `,
       [studentId]
-    );
+      ),
+    ]);
 
     return res.json({
       success: true,
@@ -653,6 +746,31 @@ router.put("/full/:studentId", async (req, res) => {
     await client.query("BEGIN");
 
     const changedBy = req.user?.user_id || null;
+
+    const [existingStudent, existingDocuments] = await Promise.all([
+      client.query(
+        `
+        SELECT photo_url
+        FROM sms.students
+        WHERE student_id = $1
+        FOR UPDATE
+        `,
+        [studentId]
+      ),
+      client.query(
+        `
+        SELECT file_url
+        FROM sms.student_documents
+        WHERE student_id = $1
+        `,
+        [studentId]
+      ),
+    ]);
+
+    if (existingStudent.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
 
     /* ================= STUDENT UPDATE ================= */
     const studentUpdateSql = `
@@ -1045,6 +1163,18 @@ router.put("/full/:studentId", async (req, res) => {
 
     await client.query("COMMIT");
 
+    // The database now references the replacement files. Remove only previous
+    // local uploads that are no longer used by the student or any document.
+    const retainedUrls = new Set([
+      toNull(student.photo_url),
+      ...documents.map((document) => toNull(document?.file_url)),
+    ].filter(Boolean));
+    const previousUrls = [
+      existingStudent.rows[0].photo_url,
+      ...existingDocuments.rows.map((document) => document.file_url),
+    ];
+    await deleteLocalUploadFiles(previousUrls.filter((url) => !retainedUrls.has(url)));
+
     return res.json({
       success: true,
       message: "Student admission updated successfully",
@@ -1054,6 +1184,74 @@ router.put("/full/:studentId", async (req, res) => {
         admission_id: admissionId,
         enrollment_id: enrollmentResult.rows[0].enrollment_id
       }
+    });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    return handleDbError(error, res);
+  } finally {
+    client.release();
+  }
+});
+
+/* =========================================================
+   DELETE FULL STUDENT ADMISSION
+   DELETE /api/student-admissions/full/:studentId
+========================================================= */
+router.delete("/full/:studentId", async (req, res) => {
+  const client = await pool.connect();
+
+  try {
+    const { studentId } = req.params;
+
+    await client.query("BEGIN");
+
+    const studentResult = await client.query(
+      `
+      SELECT photo_url
+      FROM sms.students
+      WHERE student_id = $1
+      FOR UPDATE
+      `,
+      [studentId]
+    );
+
+    if (studentResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({
+        success: false,
+        message: "Student not found"
+      });
+    }
+
+    const documentsResult = await client.query(
+      `
+      SELECT file_url
+      FROM sms.student_documents
+      WHERE student_id = $1
+      `,
+      [studentId]
+    );
+
+    await client.query(
+      `
+      DELETE FROM sms.students
+      WHERE student_id = $1
+      `,
+      [studentId]
+    );
+
+    await client.query("COMMIT");
+
+    // Related database records are removed by foreign-key cascades. Remove the
+    // corresponding local uploads only after that deletion has committed.
+    await deleteLocalUploadFiles([
+      studentResult.rows[0].photo_url,
+      ...documentsResult.rows.map((document) => document.file_url)
+    ]);
+
+    return res.json({
+      success: true,
+      message: "Student and associated uploaded files deleted successfully"
     });
   } catch (error) {
     await client.query("ROLLBACK");

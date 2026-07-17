@@ -438,10 +438,13 @@
                 </button>
             </div>
 
-            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div v-for="(t, i) in filteredTeachers" :key="i" class="teacher-card bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 relative group">
+            <div v-if="filteredTeachers.length" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div v-for="(t, i) in filteredTeachers" :key="t.id || t.employee_no || i" class="teacher-card bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 relative group">
                     <div class="h-48 relative overflow-hidden">
-                        <img :src="t.photo" :alt="t.name" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <img v-if="t.photo" :src="t.photo" :alt="t.name" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <div v-else class="w-full h-full bg-bdGreen-100 text-bdGreen-600 flex items-center justify-center">
+                            <i class="fas fa-user-tie text-6xl"></i>
+                        </div>
                         <div class="teacher-overlay absolute inset-0 bg-gradient-to-t from-bdGreen-900/90 via-bdGreen-900/40 to-transparent flex items-end p-4">
                             <div class="flex gap-2">
                                 <button class="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/40 transition-colors text-xs">
@@ -453,16 +456,19 @@
                             </div>
                         </div>
                         <span class="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                              :class="t.designation.includes('অধ্যক্ষ') || t.designation.includes('প্রধান') ? 'bg-gold-400 text-bdGreen-900' : 'bg-white/90 text-gray-600'">
+                              :class="(t.designation || '').includes('অধ্যক্ষ') || (t.designation || '').includes('প্রধান') ? 'bg-gold-400 text-bdGreen-900' : 'bg-white/90 text-gray-600'">
                             {{ t.designation }}
                         </span>
                     </div>
                     <div class="p-4">
                         <h4 class="font-bold text-gray-800">{{ t.name }}</h4>
-                        <p class="text-xs text-gray-400 mt-0.5">{{ t.subject }}</p>
-                        <p class="text-xs text-bdGreen-600 mt-1 font-medium">{{ t.qualification }}</p>
+                        <p v-if="t.subject" class="text-xs text-gray-400 mt-0.5">{{ t.subject }}</p>
+                        <p class="text-xs text-bdGreen-600 mt-1 font-medium">{{ t.designation }}</p>
                     </div>
                 </div>
+            </div>
+            <div v-else class="rounded-2xl border border-dashed border-gray-300 bg-white py-12 text-center text-gray-500">
+                শিক্ষক তথ্য শিগগিরই প্রকাশ করা হবে।
             </div>
         </div>
     </section>
@@ -925,7 +931,6 @@ const adminLoginUrl = import.meta.env.VITE_ADMIN_URL
 
         // Teacher
         const teacherFilter = ref('সকল');
-        const teacherFilters = ['সকল', 'প্রশাসন', 'বিজ্ঞান', 'মানবিক', 'ব্যবসায়'];
 
         // Gallery
         const galleryFilter = ref('সকল');
@@ -1042,19 +1047,10 @@ const adminLoginUrl = import.meta.env.VITE_ADMIN_URL
 
         const years = ['২০২৪','২০২৩','২০২২','২০২১','২০২০'];
 
-        const teachers = ref([
-            { name: 'মো: আবদুল করিম', subject: 'প্রধান শিক্ষক ও অধ্যক্ষ', designation: 'অধ্যক্ষ', qualification: 'এম.এড, বি.এড', category: 'প্রশাসন', photo: 'https://picsum.photos/seed/teacher1/400/400.jpg' },
-            { name: 'মোসা: ফাতেমা বেগম', subject: 'উপাধ্যক্ষ', designation: 'উপাধ্যক্ষ', qualification: 'এম.এসসি, বি.এড', category: 'প্রশাসন', photo: 'https://picsum.photos/seed/teacher2/400/400.jpg' },
-            { name: 'ড. মো: রফিকুল ইসলাম', subject: 'পদার্থবিজ্ঞান', designation: 'প্রফেসর', qualification: 'পিএইচডি', category: 'বিজ্ঞান', photo: 'https://picsum.photos/seed/teacher3/400/400.jpg' },
-            { name: 'মো: শফিকুল আলম', subject: 'রসায়ন', designation: 'সহকারী অধ্যক্ষ', qualification: 'এম.এসসি', category: 'বিজ্ঞান', photo: 'https://picsum.photos/seed/teacher4/400/400.jpg' },
-            { name: 'মোসা: নাসরিন সুলতানা', subject: 'জীববিজ্ঞান', designation: 'সিনিয়র শিক্ষক', qualification: 'এম.এসসি', category: 'বিজ্ঞান', photo: 'https://picsum.photos/seed/teacher5/400/400.jpg' },
-            { name: 'মো: কামরুল হাসান', subject: 'গণিত', designation: 'সহকারী অধ্যক্ষ', qualification: 'এম.এসসি', category: 'বিজ্ঞান', photo: 'https://picsum.photos/seed/teacher6/400/400.jpg' },
-            { name: 'মো: আনোয়ার হোসেন', subject: 'ইতিহাস', designation: 'সিনিয়র শিক্ষক', qualification: 'এম.এ', category: 'মানবিক', photo: 'https://picsum.photos/seed/teacher7/400/400.jpg' },
-            { name: 'মোসা: রহিমা খাতুন', subject: 'বাংলা', designation: 'সিনিয়র শিক্ষক', qualification: 'এম.এ', category: 'মানবিক', photo: 'https://picsum.photos/seed/teacher8/400/400.jpg' },
-            { name: 'মো: জাহিদ হোসেন', subject: 'ইংরেজি', designation: 'সিনিয়র শিক্ষক', qualification: 'এম.এ', category: 'মানবিক', photo: 'https://picsum.photos/seed/teacher9/400/400.jpg' },
-            { name: 'মো: সোহেল রানা', subject: 'হিসাববিজ্ঞান', designation: 'সহকারী শিক্ষক', qualification: 'এম.কম', category: 'ব্যবসায়', photo: 'https://picsum.photos/seed/teacher10/400/400.jpg' },
-            { name: 'মোসা: তানভীর আক্তার', subject: 'ব্যবসায় সংগঠন', designation: 'সহকারী শিক্ষক', qualification: 'এম.বিএ', category: 'ব্যবসায়', photo: 'https://picsum.photos/seed/teacher11/400/400.jpg' },
-            { name: 'মো: দেলোয়ার হোসেন', subject: 'ভূগোল', designation: 'সহকারী শিক্ষক', qualification: 'এম.এ', category: 'মানবিক', photo: 'https://picsum.photos/seed/teacher12/400/400.jpg' }
+        const teachers = ref([]);
+        const teacherFilters = computed(() => [
+            'সকল',
+            ...new Set(teachers.value.map(teacher => teacher.category).filter(Boolean)),
         ]);
 
         const filteredTeachers = computed(() => {
@@ -1145,8 +1141,9 @@ const adminLoginUrl = import.meta.env.VITE_ADMIN_URL
                         urgent: Boolean(notice.urgent),
                     }));
                 }
-                if (Array.isArray(data.teachers) && data.teachers.length) {
+                if (data.source === 'backend' && Array.isArray(data.teachers)) {
                     teachers.value = data.teachers;
+                    if (!teacherFilters.value.includes(teacherFilter.value)) teacherFilter.value = 'সকল';
                 }
             } catch (error) {
                 console.warn('Public data API unavailable, using bundled fallback data.', error);

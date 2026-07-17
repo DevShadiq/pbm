@@ -1036,7 +1036,24 @@ const addDocument = () => {
   form.documents.push(emptyDocument());
 };
 
-const removeDocument = (index) => {
+const removeDocument = async (index) => {
+  const document = form.documents[index];
+
+  try {
+    if (document?.file_url) {
+      await api.delete("/student-admissions/uploads", {
+        data: { student_no: form.student.student_no, file_url: document.file_url }
+      });
+    }
+
+    alert.type = "success";
+    alert.message = "Document removed successfully";
+  } catch (error) {
+    alert.type = "error";
+    alert.message = error?.response?.data?.message || "Failed to remove document";
+    return;
+  }
+
   form.documents.splice(index, 1);
 };
 
@@ -1107,8 +1124,15 @@ const buildPayload = () => {
 };
 
 
-const uploadFile = async (file, type) => {
+const uploadFile = async (file, type, previousFileUrl = "") => {
+  const studentNo = form.student.student_no?.trim();
+  if (!studentNo) {
+    throw new Error("Enter the student number before uploading a photo or document");
+  }
+
   const formData = new FormData();
+  formData.append("student_no", studentNo);
+  formData.append("previous_file_url", previousFileUrl || "");
   formData.append("file", file);
 
   const res = await api.post(`/student-admissions/upload/${type}`, formData, {
@@ -1129,7 +1153,7 @@ const uploadStudentPhoto = async (event) => {
     loading.value = true;
     alert.message = "";
 
-    const fileUrl = await uploadFile(file, "student-photo");
+    const fileUrl = await uploadFile(file, "student-photo", form.student.photo_url);
 
     form.student.photo_url = fileUrl;
 
@@ -1156,7 +1180,7 @@ const uploadDocumentFile = async (event, index) => {
     loading.value = true;
     alert.message = "";
 
-    const fileUrl = await uploadFile(file, "document");
+    const fileUrl = await uploadFile(file, "document", form.documents[index].file_url);
 
     form.documents[index].file_url = fileUrl;
 

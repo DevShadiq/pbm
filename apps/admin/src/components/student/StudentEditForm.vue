@@ -1096,8 +1096,7 @@ const loadStudentForEdit = async () => {
       end_date: normalizeDate(enrollment.end_date)
     });
 
-    await loadBatches();
-    await loadSections();
+    await Promise.all([loadBatches(), loadSections()]);
 
     form.guardians.splice(
       0,
@@ -1186,8 +1185,31 @@ const addDocument = () => {
   form.documents.push(emptyDocument());
 };
 
-const removeDocument = (index) => {
-  form.documents.splice(index, 1);
+const deleteDocumentFile = async (document) => {
+  if (!document?.file_url) return;
+
+  if (document.document_id) {
+    await api.delete(`/student-admissions/documents/${document.document_id}`);
+    return;
+  }
+
+  await api.delete("/student-admissions/uploads", {
+    data: { student_no: form.student.student_no, file_url: document.file_url }
+  });
+};
+
+const removeDocument = async (index) => {
+  const document = form.documents[index];
+
+  try {
+    await deleteDocumentFile(document);
+    form.documents.splice(index, 1);
+    alert.type = "success";
+    alert.message = "Document removed successfully";
+  } catch (error) {
+    alert.type = "error";
+    alert.message = error?.response?.data?.message || "Failed to remove document";
+  }
 };
 
 const copyPresentToPermanent = () => {
@@ -1299,8 +1321,15 @@ const buildPayload = () => {
   };
 };
 
-const uploadFile = async (file, type) => {
+const uploadFile = async (file, type, previousFileUrl = "") => {
+  const studentNo = form.student.student_no?.trim();
+  if (!studentNo) {
+    throw new Error("Enter the student number before uploading a photo or document");
+  }
+
   const formData = new FormData();
+  formData.append("student_no", studentNo);
+  formData.append("previous_file_url", previousFileUrl || "");
   formData.append("file", file);
 
   const res = await api.post(`/student-admissions/upload/${type}`, formData, {
@@ -1321,7 +1350,7 @@ const uploadStudentPhoto = async (event) => {
     loading.value = true;
     alert.message = "";
 
-    const fileUrl = await uploadFile(file, "student-photo");
+    const fileUrl = await uploadFile(file, "student-photo", form.student.photo_url);
 
     form.student.photo_url = fileUrl;
 
@@ -1348,7 +1377,7 @@ const uploadDocumentFile = async (event, index) => {
     loading.value = true;
     alert.message = "";
 
-    const fileUrl = await uploadFile(file, "document");
+    const fileUrl = await uploadFile(file, "document", form.documents[index].file_url);
 
     form.documents[index].file_url = fileUrl;
 
@@ -1374,8 +1403,19 @@ const clearStudentPhoto = () => {
   form.student.photo_url = "";
 };
 
-const clearDocumentFile = (index) => {
-  form.documents[index].file_url = "";
+const clearDocumentFile = async (index) => {
+  const document = form.documents[index];
+
+  try {
+    await deleteDocumentFile(document);
+    document.document_id = null;
+    document.file_url = "";
+    alert.type = "success";
+    alert.message = "Document file removed successfully";
+  } catch (error) {
+    alert.type = "error";
+    alert.message = error?.response?.data?.message || "Failed to remove document file";
+  }
 };
 
 const updateStudent = async () => {
@@ -1424,8 +1464,7 @@ onMounted(async () => {
   }
 
   try {
-    await loadInstitutions();
-    await loadStudentForEdit();
+    await Promise.all([loadInstitutions(), loadStudentForEdit()]);
   } catch (err) {
     console.error("Edit page load error:", err);
 

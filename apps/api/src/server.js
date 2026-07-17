@@ -11,7 +11,10 @@ import studentRoutes from "./routes/studentRoutes.js";
 import masterRoutes from "./routes/masterRoutes.js";
 import studentAdmissionRoutes from "./routes/studentAdmissionRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
+import employeeRoutes from "./routes/employeeRoutes.js";
 import pool from "./config/db.js";
+import { ensureSecurityCatalog } from "./utils/ensureSecurityCatalog.js";
+import { ensureEmployeeSchema } from "./utils/ensureEmployeeSchema.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
@@ -104,12 +107,50 @@ app.get("/api/public", async (req, res) => {
     `);
 
     const institution = result.rows[0] || null;
+    let teachers = [];
+
+    if (institution) {
+      const teacherResult = await pool.query(
+        `
+        SELECT
+          e.employee_id,
+          e.employee_no,
+          e.first_name,
+          e.first_name_bn,
+          e.last_name,
+          e.last_name_bn,
+          e.full_name,
+          e.photo_url,
+          COALESCE(NULLIF(TRIM(CONCAT_WS(' ', NULLIF(e.first_name_bn, ''), NULLIF(e.last_name_bn, ''))), ''), e.full_name) AS teacher_name,
+          COALESCE(NULLIF(dg.designation_name_bn, ''), dg.designation_name, '') AS designation_name,
+          COALESCE(NULLIF(d.department_name_bn, ''), d.department_name, '') AS department_name
+        FROM sms.employees e
+        LEFT JOIN sms.designations dg ON dg.designation_id = e.designation_id
+        LEFT JOIN sms.departments d ON d.department_id = e.department_id
+        WHERE e.institution_id = $1
+          AND e.employee_type = 'TEACHER'
+          AND e.employment_status = 'ACTIVE'
+        ORDER BY dg.designation_name, e.first_name, e.last_name
+        `,
+        [institution.institution_id]
+      );
+
+      teachers = teacherResult.rows.map((teacher) => ({
+        id: teacher.employee_id,
+        employee_no: teacher.employee_no,
+        name: teacher.teacher_name || teacher.full_name,
+        designation: teacher.designation_name || "শিক্ষক",
+        subject: teacher.department_name || "",
+        category: teacher.department_name || "সকল",
+        photo: teacher.photo_url || "",
+      }));
+    }
 
     return res.json({
       settings: buildPublicSettings(institution),
       institution,
       notices: [],
-      teachers: [],
+      teachers,
       source: institution ? "backend" : "generated",
     });
   } catch (error) {
@@ -133,8 +174,9 @@ app.use("/api/menus", menuRoutes);
 app.use("/api/roles", roleRoutes);
 app.use("/api/institutions", institutionRoutes);
 app.use("/api/students", studentRoutes);
-app.use("/api", masterRoutes);
 app.use("/api/student-admissions", studentAdmissionRoutes);
+app.use("/api/employees", employeeRoutes);
+app.use("/api", masterRoutes);
 
 if (hasAdminBuild) {
   app.use("/admin", express.static(adminDist));
@@ -156,6 +198,24 @@ if (hasWebsiteBuild) {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
-});
+async function startServer() {
+  try {
+    await ensureEmployeeSchema();
+    console.log("Employee schema synchronized");
+  } catch (error) {
+    console.error("Employee schema synchronization failed:", error.message);
+  }
+
+  try {
+    await ensureSecurityCatalog();
+    console.log("Security catalog synchronized");
+  } catch (error) {
+    console.error("Security catalog synchronization failed:", error.message);
+  }
+
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on http://0.0.0.0:${PORT}`);
+  });
+}
+
+startServer();
