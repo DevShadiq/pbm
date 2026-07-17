@@ -3,15 +3,16 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.resolve(scriptDir, "..");
+const workspaceRoot = path.resolve(scriptDir, "..");
+const websiteRoot = path.join(workspaceRoot, "apps", "website");
 const source = path.join(
-  projectRoot,
+  workspaceRoot,
   "node_modules",
   "@fortawesome",
   "fontawesome-free",
   "webfonts"
 );
-const destination = path.join(projectRoot, "public", "webfonts");
+const destination = path.join(websiteRoot, "public", "webfonts");
 
 try {
   await stat(source);

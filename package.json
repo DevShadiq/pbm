@@ -1,32 +1,23 @@
 {
+  "name": "pbm-school-management",
+  "version": "1.0.0",
+  "private": true,
   "type": "module",
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "predev": "node scripts/copy-fontawesome-webfonts.mjs",
-    "dev": "vite --host 0.0.0.0",
-    "dev:api": "node server/index.js",
-    "prebuild": "node scripts/copy-fontawesome-webfonts.mjs",
-    "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0",
-    "start": "node server/index.js"
+    "dev": "npm run dev --workspace @pbm/website",
+    "dev:frontend": "npm run dev --workspace @pbm/website",
+    "dev:api": "npm run dev --workspace @pbm/api",
+    "dev:all": "node scripts/run-dev.mjs --api",
+    "build": "npm run build:website && npm run build:admin",
+    "build:website": "npm run build --workspace @pbm/website",
+    "build:admin": "npm run build --workspace @pbm/admin",
+    "start": "npm run start --workspace @pbm/api",
+    "create-admin": "npm run create-admin --workspace @pbm/api"
   },
-  "dependencies": {
-    "@fortawesome/fontawesome-free": "^7.3.1",
-    "@vitejs/plugin-vue": "latest",
-    "axios": "^1.18.1",
-    "bcryptjs": "^3.0.3",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^4.22.2",
-    "jsonwebtoken": "^9.0.3",
-    "multer": "^2.2.0",
-    "mysql2": "^3.22.5",
-    "vite": "latest",
-    "vue": "latest",
-    "vue-router": "^4.6.4"
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.5.4",
-    "postcss": "^8.5.19",
-    "tailwindcss": "^3.4.17"
+  "engines": {
+    "node": ">=20.19.0"
   }
 }

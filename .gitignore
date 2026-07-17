@@ -1,6 +1,11 @@
 node_modules/
-dist/
+apps/*/node_modules/
+apps/api/dist/
+apps/*/dist/
 *.log
-.env
+.env*
+apps/*/.env*
+!apps/*/.env.example
+!apps/admin/.env.production.example
 data/*.sqlite
-public/webfonts/
+apps/website/public/webfonts/
