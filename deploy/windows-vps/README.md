@@ -9,14 +9,14 @@ The repository contains separate website, admin, and API applications. Productio
 
 ## Requirements
 
-Install Node.js 20 LTS or newer, MySQL 8, Caddy, and NSSM. Point the domain to the VPS and open ports 80 and 443. Keep port 5000 private.
+Install Node.js 20 LTS or newer, MySQL 8, Nginx, and PM2. Point the domain to the VPS and open ports 80 and 443. Keep port 5000 private.
 
 ## Install
 
-Copy the complete repository to a stable location such as `C:\apps\pbm`.
+Copy the complete repository to a stable location. The included PM2 and Nginx files use `D:\pbm` to match this server; update those absolute paths if you choose a different location.
 
 ```powershell
-Set-Location C:\apps\pbm
+Set-Location D:\pbm
 npm ci
 Copy-Item apps\api\.env.example apps\api\.env
 ```
@@ -42,19 +42,33 @@ Create the first administrator when required:
 npm run create-admin
 ```
 
-## Windows service
+## PM2 backend process
 
-Run in an elevated PowerShell session:
+Install PM2 globally once from an elevated PowerShell session:
 
 ```powershell
-nssm install SchoolManagementBackend "C:\Program Files\nodejs\node.exe" "C:\apps\pbm\apps\api\src\server.js"
-nssm set SchoolManagementBackend AppDirectory "C:\apps\pbm\apps\api"
-nssm set SchoolManagementBackend AppEnvironmentExtra "NODE_ENV=production"
-nssm set SchoolManagementBackend Start SERVICE_AUTO_START
-nssm start SchoolManagementBackend
+npm install --global pm2
 ```
 
-Verify `http://127.0.0.1:5000/api/health`, then configure Caddy from `Caddyfile.example` and verify the public HTTPS URL.
+Start and persist the API process:
+
+```powershell
+New-Item -ItemType Directory -Force D:\pbm\logs
+pm2 start deploy\windows-vps\ecosystem.config.cjs
+pm2 save
+pm2 status
+```
+
+`pm2 save` preserves the process list. On Windows, configure PM2 to restore it at boot using your approved service or Scheduled Task method.
+
+Verify `http://127.0.0.1:5000/api/health`, then copy `nginx-sms.conf` into Nginx's `conf\sites-enabled` directory (or include it from `nginx.conf`) and reload Nginx:
+
+```powershell
+C:\nginx\nginx.exe -t
+C:\nginx\nginx.exe -s reload
+```
+
+For later deployments, run `npm ci`, `npm run build`, and `pm2 reload school-management-api --update-env`.
 
 ## Backups
 
