@@ -296,6 +296,16 @@ const routes = [
     action: "view",
   },
 }
+,
+{
+  path: "notices",
+  name: "NoticeManagement",
+  component: () => import("../views/notice/NoticeManagementView.vue"),
+  meta: {
+    permission: "notice.management",
+    action: "view",
+  },
+}
     
     ],
   },

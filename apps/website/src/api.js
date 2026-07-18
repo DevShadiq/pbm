@@ -82,6 +82,10 @@ export const api = {
     }
   },
 
+  publicNotices() {
+    return apiRequest('/public/notices');
+  },
+
   submitAdmission(payload) {
     return apiRequest('/admissions', {
       method: 'POST',

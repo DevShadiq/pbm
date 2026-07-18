@@ -230,6 +230,31 @@ export const permissionApi = {
   },
 };
 
+export const noticeApi = {
+  getAll(params = {}) {
+    return api.get("/notices", { params });
+  },
+  getCategories() {
+    return api.get("/notices/categories");
+  },
+  create(data) {
+    return api.post("/notices", data);
+  },
+  update(id, data) {
+    return api.put(`/notices/${id}`, data);
+  },
+  uploadAttachment(file) {
+    const formData = new FormData();
+    formData.append("attachment", file);
+    return api.post("/notices/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+  delete(id) {
+    return api.delete(`/notices/${id}`);
+  },
+};
+
 export const employeeApi = {
   getEmployees(params = {}) { return api.get("/employees", { params }); },
   getEmployee(id) { return api.get(`/employees/${id}`); },

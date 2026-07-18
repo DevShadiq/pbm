@@ -1,4 +1,6 @@
 <template>
+    <NoticeArchiveView v-if="isNoticeArchive" />
+    <template v-else>
 
     <!-- Top Bar -->
     <div class="bg-bdGreen-900 text-white text-sm py-1.5 relative z-50">
@@ -180,13 +182,31 @@
             <div class="grid lg:grid-cols-3 gap-8">
                 <!-- Notice List -->
                 <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="flex items-center justify-between bg-bdGreen-600 text-white px-6 py-3">
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-bdGreen-600 text-white px-6 py-3">
                         <h3 class="font-bold flex items-center gap-2"><i class="fas fa-bullhorn"></i> নোটিশ বোর্ড</h3>
                         <div class="flex gap-2">
                             <button v-for="f in noticeFilters" :key="f" @click="noticeFilter = f"
                                     class="text-xs px-3 py-1 rounded-full transition-all"
                                     :class="noticeFilter === f ? 'bg-white text-bdGreen-700 font-bold' : 'bg-white/20 hover:bg-white/30'">
                                 {{ f }}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="border-b border-gray-100 bg-gray-50 px-5 py-4">
+                        <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_170px]">
+                            <label class="relative block">
+                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                                <input v-model.trim="noticeSearch" type="search" placeholder="নোটিশ খুঁজুন..." class="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none transition focus:border-bdGreen-500 focus:ring-2 focus:ring-bdGreen-100">
+                            </label>
+                            <select v-model="noticeYear" class="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-600 outline-none focus:border-bdGreen-500">
+                                <option value="">সকল বছর</option>
+                                <option v-for="year in noticeYears" :key="year" :value="year">{{ year }} সাল</option>
+                            </select>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between gap-3 text-xs">
+                            <span class="text-gray-500">{{ filteredNotices.length }} টি নোটিশ পাওয়া গেছে</span>
+                            <button v-if="noticeSearch || noticeYear || noticeFilter !== 'সকল'" @click="resetNoticeFilters" class="font-semibold text-bdGreen-700 hover:text-bdGreen-800">
+                                <i class="fas fa-times-circle mr-1"></i>ফিল্টার মুছুন
                             </button>
                         </div>
                     </div>
@@ -209,7 +229,7 @@
                         </div>
                     </div>
                     <div class="px-6 py-3 bg-gray-50 text-center">
-                        <button class="text-sm text-bdGreen-600 hover:text-bdGreen-700 font-medium">
+                        <button @click="showNoticeArchive" class="text-sm text-bdGreen-600 hover:text-bdGreen-700 font-medium">
                             সকল নোটিশ দেখুন <i class="fas fa-arrow-right ml-1"></i>
                         </button>
                     </div>
@@ -418,6 +438,9 @@
                                     <i class="fas fa-phone"></i>
                                 </a>
                             </div>
+                        </div>
+                        <div v-if="!filteredNotices.length" class="px-6 py-10 text-center text-sm text-gray-400">
+                            বর্তমানে কোনো নোটিশ প্রকাশিত নেই।
                         </div>
                         <span class="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full"
                               :class="(t.designation || '').includes('অধ্যক্ষ') || (t.designation || '').includes('প্রধান') ? 'bg-gold-400 text-bdGreen-900' : 'bg-white/90 text-gray-600'">
@@ -807,9 +830,9 @@
 
     <!-- Notice Detail Modal -->
     <transition name="fade">
-        <div v-if="showNoticeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay" @click.self="showNoticeModal = false">
+        <div v-if="showNoticeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay" @click="showNoticeModal = false">
             <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-            <div class="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto modal-content">
+            <div class="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto modal-content" @click.stop>
                 <div class="bg-bdGreen-600 text-white rounded-t-3xl px-8 py-6">
                     <button @click="showNoticeModal = false" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
                         <i class="fas fa-times"></i>
@@ -819,12 +842,16 @@
                     <p class="text-sm text-green-100 mt-1"><i class="far fa-calendar mr-1"></i>{{ selectedNotice.date }}</p>
                 </div>
                 <div class="p-8">
-                    <p class="text-gray-600 leading-relaxed">{{ selectedNotice.detail }}</p>
+                    <div v-if="selectedNotice.detail_html" class="notice-rich-text text-gray-600 leading-relaxed" v-html="selectedNotice.detail_html"></div>
+                    <p v-else class="text-gray-600 leading-relaxed">{{ selectedNotice.detail }}</p>
                     <div class="mt-6 flex gap-3">
-                        <button class="flex items-center gap-2 bg-bdGreen-50 text-bdGreen-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-bdGreen-100 transition-colors">
+                        <a v-if="selectedNotice.attachment_url" :href="selectedNotice.attachment_url" target="_blank" rel="noopener" class="flex items-center gap-2 bg-bdGreen-50 text-bdGreen-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-bdGreen-100 transition-colors">
+                            <i class="fas fa-external-link-alt"></i> ওপেন
+                        </a>
+                        <a v-if="selectedNotice.attachment_url" :href="selectedNotice.attachment_url" download class="flex items-center gap-2 bg-bdGreen-50 text-bdGreen-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-bdGreen-100 transition-colors">
                             <i class="fas fa-download"></i> ডাউনলোড
-                        </button>
-                        <button class="flex items-center gap-2 bg-gray-100 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                        </a>
+                        <button @click="printNotice" class="flex items-center gap-2 bg-gray-100 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
                             <i class="fas fa-print"></i> প্রিন্ট
                         </button>
                     </div>
@@ -856,14 +883,17 @@
         </div>
     </transition>
 
+    </template>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { api } from './api.js';
+import NoticeArchiveView from './NoticeArchiveView.vue';
 
 const adminLoginUrl = import.meta.env.VITE_ADMIN_URL
   || '/admin/login';
+const isNoticeArchive = window.location.pathname.replace(/\/+$/, '') === '/notices';
 
 // State
         const scrolled = ref(false);
@@ -883,7 +913,9 @@ const adminLoginUrl = import.meta.env.VITE_ADMIN_URL
 
         // Notice
         const noticeFilter = ref('সকল');
-        const noticeFilters = ['সকল', 'ভর্তি', 'পরীক্ষা', 'প্রশাসন'];
+        const noticeFilters = ['সকল', 'ভর্তি', 'পরীক্ষা', 'প্রশাসন', 'সাধারণ'];
+        const noticeSearch = ref('');
+        const noticeYear = ref('');
 
         // Academic
         const activeAcademicTab = ref('all');
@@ -983,21 +1015,31 @@ const adminLoginUrl = import.meta.env.VITE_ADMIN_URL
             { value: '৯৮%', label: 'পাশের হার' }
         ];
 
-        const notices = ref([
-            { title: '২০২৫ শিক্ষাবর্ষে ভর্তি বিজ্ঞপ্তি', date: '১২ জানু ২০২৫', category: 'ভর্তি', urgent: true, detail: '২০২৫ শিক্ষাবর্ষে ষষ্ঠ থেকে দ্বাদশ শ্রেণি পর্যন্ত ভর্তি কার্যক্রম শুরু হবে। ভর্তি পোর্টালর মাধ্যমে অনলাইনে আবেদন করতে হবে। বিস্তারিত বাংলাদেশ মাদরাসা শিক্ষা বোর্ডের ওয়েবসাইটে পাওয়া যাবে।' },
-            { title: 'বার্ষিক পরীক্ষা ২০২৪ এর সময়সূচি প্রকাশ', date: '১০ জানু ২০২৫', category: 'পরীক্ষা', urgent: true, detail: 'বার্ষিক পরীক্ষা ২০২৪ এর সম্পূর্ণ সময়সূচি প্রকাশ করা হয়েছে। সকল শিক্ষার্থীদের নির্ধারিত সময়ে পরীক্ষায় অংশগ্রহণ করতে হবে।' },
-            { title: 'অধ্যক্ষ মহোদয়ের অফিস পরিদর্শন সময়সূচি', date: '০৮ জানু ২০২৫', category: 'প্রশাসন', urgent: false, detail: 'অধ্যক্ষ মহোদয় প্রতি রবিবার ও বুধবার সকাল ১০টা থেকে দুপুর ১টা পর্যন্ত অভিভাবকদের সাথে সাক্ষাৎ করবেন।' },
-            { title: 'মাসিক অভিভাবক সমাবেশের তারিখ ঘোষণা', date: '০৫ জানু ২০২৫', category: 'প্রশাসন', urgent: false, detail: 'আগামী ২০ জানুয়ারি মাসিক অভিভাবক সমাবেশ অনুষ্ঠিত হবে। সকল অভিভাবকদের উপস্থিত থাকতে অনুরোধ করা হচ্ছে।' },
-            { title: 'আলিম পরীক্ষার্থীদের ফর্ম পূরণের নোটিশ', date: '০৩ জানু ২০২৫', category: 'পরীক্ষা', urgent: true, detail: '২০২৫ সালের আলিম পরীক্ষার ফর্ম পূরণ শুরু হবে। নির্ধারিত সময়ের মধ্যে ফর্ম পূরণ করতে হবে।' },
-            { title: 'শীতকালীন ক্রীড়া প্রতিযোগিতার সময়সূচি', date: '০১ জানু ২০২৫', category: 'প্রশাসন', urgent: false, detail: 'শীতকালীন ক্রীড়া প্রতিযোগিতা আগামী মাসে অনুষ্ঠিত হবে। আগ্রহী শিক্ষার্থীরা শ্রেণি শিক্ষকের কাছে নাম দিন।' },
-            { title: 'বিজ্ঞান মেলা ২০২৫ এর আহ্বান', date: '২৮ ডিসে ২০২৪', category: 'প্রশাসন', urgent: false, detail: 'আগামী ফেব্রুয়ারিতে বিজ্ঞান মেলা অনুষ্ঠিত হবে। আগ্রহী শিক্ষার্থীরা দলগতভাবে অংশগ্রহণ করতে পারবে।' },
-            { title: 'নতুন শিক্ষাবর্ষে ভর্তি বিজ্ঞপ্তি', date: '২৫ ডিসে ২০২৪', category: 'ভর্তি', urgent: true, detail: 'ষষ্ঠ শ্রেণিতে ভর্তির লটারি ফলাফল প্রকাশিত হয়েছে। নির্বাচিত শিক্ষার্থীদের নির্ধারিত সময়ে ভর্তি সম্পন্ন করতে হবে।' }
-        ]);
+        const notices = ref([]);
 
+        const getNoticeYear = (notice) => {
+            const value = String(notice.published_at_iso || notice.date || '');
+            return value.match(/\d{4}/)?.[0] || '';
+        };
+        const noticeYears = computed(() => [...new Set(notices.value.map(getNoticeYear).filter(Boolean))]
+            .sort((first, second) => Number(second) - Number(first)));
         const filteredNotices = computed(() => {
-            if (noticeFilter.value === 'সকল') return notices.value;
-            return notices.value.filter(n => n.category === noticeFilter.value);
+            const keyword = noticeSearch.value.toLocaleLowerCase().trim();
+            return notices.value.filter((notice) => {
+                const matchesCategory = noticeFilter.value === 'সকল' || notice.category === noticeFilter.value;
+                const matchesYear = !noticeYear.value || getNoticeYear(notice) === noticeYear.value;
+                const searchable = [notice.title, notice.category, notice.detail]
+                    .filter(Boolean)
+                    .join(' ')
+                    .toLocaleLowerCase();
+                return matchesCategory && matchesYear && (!keyword || searchable.includes(keyword));
+            });
         });
+        const resetNoticeFilters = () => {
+            noticeFilter.value = 'সকল';
+            noticeSearch.value = '';
+            noticeYear.value = '';
+        };
 
         const events = [
             { day: '২৬', month: 'মার্চ', title: 'স্বাধীনতা দিবস উদযাপন', time: 'সকাল ৬:৩০' },
@@ -1101,7 +1143,7 @@ const adminLoginUrl = import.meta.env.VITE_ADMIN_URL
                 if (schoolSettings.value.breaking_news) {
                     breakingNews.value = `📢 ${schoolSettings.value.breaking_news}`;
                 }
-                if (Array.isArray(data.notices) && data.notices.length) {
+                if (Array.isArray(data.notices)) {
                     notices.value = data.notices.map(notice => ({
                         ...notice,
                         date: notice.published_at,
@@ -1148,6 +1190,44 @@ const adminLoginUrl = import.meta.env.VITE_ADMIN_URL
         const openNotice = (notice) => {
             selectedNotice.value = notice;
             showNoticeModal.value = true;
+        };
+
+        const showNoticeArchive = () => {
+            window.location.assign('/notices');
+        };
+
+        const escapeHtml = (value) => String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+
+        const printNotice = () => {
+            const notice = selectedNotice.value;
+            const content = notice.detail_html
+                || `<p>${escapeHtml(notice.detail).replace(/\n/g, '<br>')}</p>`;
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) return;
+            printWindow.opener = null;
+
+            printWindow.document.write(`<!doctype html>
+              <html><head><title>${escapeHtml(notice.title)}</title>
+              <style>
+                @page { size: A4; margin: 22mm; }
+                body { font-family: Arial, 'Noto Sans Bengali', sans-serif; color: #172033; line-height: 1.7; }
+                header { border-bottom: 2px solid #167044; margin-bottom: 24px; padding-bottom: 14px; }
+                h1 { margin: 8px 0; font-size: 24px; } .meta { color: #526274; font-size: 13px; }
+                article p { margin: 0 0 14px; } article ul, article ol { padding-left: 26px; margin: 0 0 14px; }
+                article table { width: 100%; border-collapse: collapse; margin: 16px 0; } article th, article td { border: 1px solid #94a3b8; padding: 8px; text-align: left; }
+                article a { color: #0f766e; } footer { border-top: 1px solid #cbd5e1; color: #64748b; font-size: 11px; margin-top: 36px; padding-top: 10px; }
+              </style></head><body>
+              <header><div class="meta">${escapeHtml(notice.category)} | ${escapeHtml(notice.date)}</div><h1>${escapeHtml(notice.title)}</h1></header>
+              <article>${content}</article><footer>Printed from the School Management System</footer>
+              </body></html>`);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.setTimeout(() => printWindow.print(), 250);
         };
 
         const openGalleryModal = (index) => {

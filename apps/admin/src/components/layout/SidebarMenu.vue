@@ -127,17 +127,12 @@ const setMenus = (nextMenus) => {
 const loadMenus = async () => {
   try {
     const savedMenus = JSON.parse(localStorage.getItem("sms_menus") || "[]");
-
-    if (savedMenus.length) {
-      setMenus(savedMenus);
-      return;
-    }
-
     const accessRes = await api.get("/security/me/access");
     const accessMenus = accessRes.data?.data?.menus || [];
 
-    localStorage.setItem("sms_menus", JSON.stringify(accessMenus));
-    setMenus(accessMenus);
+    const nextMenus = accessMenus.length ? accessMenus : savedMenus;
+    localStorage.setItem("sms_menus", JSON.stringify(nextMenus));
+    setMenus(nextMenus);
   } catch (error) {
     console.error("Menu parse error:", error);
     setMenus(fallbackMenus);

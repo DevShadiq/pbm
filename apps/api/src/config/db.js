@@ -31,6 +31,8 @@ const primaryKeys = {
   roles: "role_id",
   permissions: "permission_id",
   menus: "menu_id",
+  notice_categories: "notice_category_id",
+  notices: "notice_id",
   education_boards: "board_id",
   mediums: "medium_id",
   shifts: "shift_id",

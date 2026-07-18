@@ -7,6 +7,7 @@ const permissions = [
   ["student.management", "Student Management", "Students", "View student records"],
   ["student.admission", "Student Admission", "Students", "Admit new students"],
   ["employee.management", "Employee Management", "HR", "Manage departments, designations, and employees"],
+  ["notice.management", "Notice Management", "Notices", "Create and publish categorized notices"],
   ["user.management", "User Management", "Security", "Manage application users"],
   ["role.management", "Role Management", "Security", "Manage security roles"],
   ["role.permission", "Role Permissions", "Security", "Assign permissions to roles"],
@@ -46,6 +47,20 @@ export async function ensureSecurityCatalog() {
       (parent_menu_id, menu_code, menu_title, route_path, icon_name, sort_order, is_visible, status)
     VALUES
       (NULL, 'EMPLOYEE_MANAGEMENT', 'Employee Management', '/employees', 'employee', 40, TRUE, 'ACTIVE')
+    ON DUPLICATE KEY UPDATE
+      menu_title = VALUES(menu_title),
+      route_path = VALUES(route_path),
+      icon_name = VALUES(icon_name),
+      sort_order = VALUES(sort_order),
+      is_visible = VALUES(is_visible),
+      status = VALUES(status)
+  `);
+
+  await pool.query(`
+    INSERT INTO sms.menus
+      (parent_menu_id, menu_code, menu_title, route_path, icon_name, sort_order, is_visible, status)
+    VALUES
+      (NULL, 'NOTICE_MANAGEMENT', 'Notice Management', '/notices', 'notice', 45, TRUE, 'ACTIVE')
     ON DUPLICATE KEY UPDATE
       menu_title = VALUES(menu_title),
       route_path = VALUES(route_path),

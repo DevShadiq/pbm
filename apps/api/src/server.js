@@ -12,9 +12,12 @@ import masterRoutes from "./routes/masterRoutes.js";
 import studentAdmissionRoutes from "./routes/studentAdmissionRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import employeeRoutes from "./routes/employeeRoutes.js";
+import noticeRoutes from "./routes/noticeRoutes.js";
 import pool from "./config/db.js";
 import { ensureSecurityCatalog } from "./utils/ensureSecurityCatalog.js";
 import { ensureEmployeeSchema } from "./utils/ensureEmployeeSchema.js";
+import { ensureNoticeSchema } from "./utils/ensureNoticeSchema.js";
+import { sanitizeNoticeHtml } from "./utils/noticeContent.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
@@ -108,6 +111,7 @@ app.get("/api/public", async (req, res) => {
 
     const institution = result.rows[0] || null;
     let teachers = [];
+    let notices = [];
     let academic = {
       levels: [],
       classes: [],
@@ -116,7 +120,7 @@ app.get("/api/public", async (req, res) => {
     };
 
     if (institution) {
-      const [teacherResult, academicLevelsResult, classLevelsResult, sectionsResult, shiftsResult] = await Promise.all([
+      const [teacherResult, academicLevelsResult, classLevelsResult, sectionsResult, shiftsResult, noticeResult] = await Promise.all([
         pool.query(
         `
         SELECT
@@ -189,6 +193,29 @@ app.get("/api/public", async (req, res) => {
           `,
           [institution.institution_id]
         ),
+        pool.query(
+          `
+          SELECT
+            n.notice_id,
+            COALESCE(NULLIF(n.title_bn, ''), NULLIF(n.title, ''), n.notice_title) AS title,
+            COALESCE(c.category_name_bn, c.category_name, n.category_code) AS category,
+            DATE_FORMAT(COALESCE(n.published_at, n.publish_date, n.created_at), '%d %b %Y') AS published_at,
+            DATE_FORMAT(COALESCE(n.published_at, n.publish_date, n.created_at), '%Y-%m-%d') AS published_at_iso,
+            n.is_urgent AS urgent,
+            COALESCE(NULLIF(n.description, ''), n.notice_body) AS detail,
+            n.content_html AS detail_html,
+            n.attachment_url
+          FROM sms.notices n
+          LEFT JOIN sms.notice_categories c ON c.category_code = n.category_code
+          WHERE n.status = 'PUBLISHED'
+            AND (n.institution_id = $1 OR n.institution_id IS NULL)
+            AND (n.published_at IS NULL OR n.published_at <= NOW())
+            AND (n.expires_at IS NULL OR n.expires_at >= NOW())
+          ORDER BY COALESCE(n.published_at, n.created_at) DESC, n.notice_id DESC
+          LIMIT 20
+          `,
+          [institution.institution_id]
+        ),
       ]);
 
       teachers = teacherResult.rows.map((teacher) => ({
@@ -209,12 +236,17 @@ app.get("/api/public", async (req, res) => {
         sections: sectionsResult.rows,
         shifts: shiftsResult.rows,
       };
+      notices = noticeResult.rows.map((notice) => ({
+        ...notice,
+        detail_html: sanitizeNoticeHtml(notice.detail_html) || null,
+        urgent: Boolean(Number(notice.urgent)),
+      }));
     }
 
     return res.json({
       settings: buildPublicSettings(institution),
       institution,
-      notices: [],
+      notices,
       teachers,
       academic,
       source: institution ? "backend" : "generated",
@@ -238,6 +270,42 @@ app.get("/api/public", async (req, res) => {
   }
 });
 
+app.get("/api/public/notices", async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        n.notice_id,
+        COALESCE(NULLIF(n.title_bn, ''), NULLIF(n.title, ''), n.notice_title) AS title,
+        COALESCE(c.category_name_bn, c.category_name, n.category_code) AS category,
+        DATE_FORMAT(COALESCE(n.published_at, n.publish_date, n.created_at), '%d %b %Y') AS published_at,
+        DATE_FORMAT(COALESCE(n.published_at, n.publish_date, n.created_at), '%Y-%m-%d') AS published_at_iso,
+        n.is_urgent AS urgent,
+        COALESCE(NULLIF(n.description, ''), n.notice_body) AS detail,
+        n.content_html AS detail_html,
+        n.attachment_url
+      FROM sms.notices n
+      LEFT JOIN sms.notice_categories c ON c.category_code = n.category_code
+      WHERE n.status = 'PUBLISHED'
+        AND (n.published_at IS NULL OR n.published_at <= NOW())
+        AND (n.expires_at IS NULL OR n.expires_at >= NOW())
+      ORDER BY COALESCE(n.published_at, n.publish_date, n.created_at) DESC, n.notice_id DESC
+      LIMIT 500
+    `);
+
+    res.json({
+      success: true,
+      notices: result.rows.map((notice) => ({
+        ...notice,
+        detail_html: sanitizeNoticeHtml(notice.detail_html) || null,
+        urgent: Boolean(Number(notice.urgent)),
+      })),
+    });
+  } catch (error) {
+    console.error("Public notice archive error:", error.message);
+    res.status(500).json({ success: false, message: "Failed to load notices." });
+  }
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/users", userRoutes);
@@ -248,6 +316,7 @@ app.use("/api/institutions", institutionRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/student-admissions", studentAdmissionRoutes);
 app.use("/api/employees", employeeRoutes);
+app.use("/api/notices", noticeRoutes);
 app.use("/api", masterRoutes);
 
 if (hasAdminBuild) {
@@ -271,6 +340,13 @@ if (hasWebsiteBuild) {
 const PORT = process.env.PORT || 5000;
 
 async function startServer() {
+  try {
+    await ensureNoticeSchema();
+    console.log("Notice schema synchronized");
+  } catch (error) {
+    console.error("Notice schema synchronization failed:", error.message);
+  }
+
   try {
     await ensureEmployeeSchema();
     console.log("Employee schema synchronized");
