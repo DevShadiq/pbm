@@ -645,8 +645,8 @@
                 <div>
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center p-1">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Emblem_of_Bangladesh.svg/200px-Emblem_of_Bangladesh.svg.png" 
-                                 alt="" class="w-full h-full object-contain rounded-full" onerror="this.style.display='none'">
+                            <img src="/logo.png"
+                                 alt="বিদ্যালয়ের লোগো" class="w-full h-full object-contain rounded-full" onerror="this.style.display='none'">
                         </div>
                         <div>
                             <h4 class="font-bold text-sm">{{ schoolSettings.name_bn }}</h4>

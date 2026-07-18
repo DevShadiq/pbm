@@ -112,9 +112,9 @@
 
     <div class="pagination-wrap">
       <Pagination
-        :current-page="currentPage"
-        :total-pages="totalPages"
-        @page-change="currentPage = $event"
+        v-model:current-page="currentPage"
+        :per-page="pageSize"
+        :total="filteredStudents.length"
       />
     </div>
   </BaseCard>
@@ -205,7 +205,7 @@ const paginatedStudents = computed(() => {
   return filteredStudents.value.slice(start, end);
 });
 
-watch([searchText, selectedStatus], () => {
+watch([searchText, selectedStatus, () => props.students], () => {
   currentPage.value = 1;
 });
 
