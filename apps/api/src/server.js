@@ -108,9 +108,16 @@ app.get("/api/public", async (req, res) => {
 
     const institution = result.rows[0] || null;
     let teachers = [];
+    let academic = {
+      levels: [],
+      classes: [],
+      sections: [],
+      shifts: [],
+    };
 
     if (institution) {
-      const teacherResult = await pool.query(
+      const [teacherResult, academicLevelsResult, classLevelsResult, sectionsResult, shiftsResult] = await Promise.all([
+        pool.query(
         `
         SELECT
           e.employee_id,
@@ -120,6 +127,8 @@ app.get("/api/public", async (req, res) => {
           e.last_name,
           e.last_name_bn,
           e.full_name,
+          e.mobile,
+          e.email,
           e.photo_url,
           COALESCE(NULLIF(TRIM(CONCAT_WS(' ', NULLIF(e.first_name_bn, ''), NULLIF(e.last_name_bn, ''))), ''), e.full_name) AS teacher_name,
           COALESCE(NULLIF(dg.designation_name_bn, ''), dg.designation_name, '') AS designation_name,
@@ -133,7 +142,54 @@ app.get("/api/public", async (req, res) => {
         ORDER BY dg.designation_name, e.first_name, e.last_name
         `,
         [institution.institution_id]
-      );
+        ),
+        pool.query(
+          `
+          SELECT level_id, level_code, level_name, level_name_bn, sort_order
+          FROM sms.academic_levels
+          WHERE institution_id = $1 AND status = 'ACTIVE'
+          ORDER BY sort_order IS NULL, sort_order, level_id
+          `,
+          [institution.institution_id]
+        ),
+        pool.query(
+          `
+          SELECT
+            cl.class_id,
+            cl.level_id,
+            cl.class_code,
+            cl.class_code_bn,
+            cl.class_name,
+            cl.class_name_bn,
+            cl.numeric_level,
+            al.level_name,
+            al.level_name_bn
+          FROM sms.class_levels cl
+          LEFT JOIN sms.academic_levels al ON al.level_id = cl.level_id
+          WHERE cl.institution_id = $1 AND cl.status = 'ACTIVE'
+          ORDER BY cl.numeric_level IS NULL, cl.numeric_level, cl.class_id
+          `,
+          [institution.institution_id]
+        ),
+        pool.query(
+          `
+          SELECT section_id, section_code, section_name, section_name_bn, capacity
+          FROM sms.sections
+          WHERE institution_id = $1 AND status = 'ACTIVE'
+          ORDER BY section_name, section_id
+          `,
+          [institution.institution_id]
+        ),
+        pool.query(
+          `
+          SELECT shift_id, shift_name, shift_name_bn, start_time, end_time
+          FROM sms.shifts
+          WHERE institution_id = $1 AND status = 'ACTIVE'
+          ORDER BY start_time IS NULL, start_time, shift_id
+          `,
+          [institution.institution_id]
+        ),
+      ]);
 
       teachers = teacherResult.rows.map((teacher) => ({
         id: teacher.employee_id,
@@ -143,7 +199,16 @@ app.get("/api/public", async (req, res) => {
         subject: teacher.department_name || "",
         category: teacher.department_name || "সকল",
         photo: teacher.photo_url || "",
+        phone: teacher.mobile || "",
+        email: teacher.email || "",
       }));
+
+      academic = {
+        levels: academicLevelsResult.rows,
+        classes: classLevelsResult.rows,
+        sections: sectionsResult.rows,
+        shifts: shiftsResult.rows,
+      };
     }
 
     return res.json({
@@ -151,6 +216,7 @@ app.get("/api/public", async (req, res) => {
       institution,
       notices: [],
       teachers,
+      academic,
       source: institution ? "backend" : "generated",
     });
   } catch (error) {
@@ -161,6 +227,12 @@ app.get("/api/public", async (req, res) => {
       institution: null,
       notices: [],
       teachers: [],
+      academic: {
+        levels: [],
+        classes: [],
+        sections: [],
+        shifts: [],
+      },
       source: "generated",
     });
   }

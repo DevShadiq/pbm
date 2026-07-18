@@ -61,6 +61,7 @@ const tables = {
       "institution_id",
       "level_id",
       "class_code",
+      "class_code_bn",
       "class_name",
       "class_name_bn",
       "numeric_level",

@@ -313,6 +313,7 @@ const modules = [
       { name: "institution_id", label: "Institution", type: "select", source: "institutions", required: true },
       { name: "level_id", label: "Academic Level", type: "select", source: "academicLevels" },
       { name: "class_code", label: "Class Code", type: "text", required: true },
+      { name: "class_code_bn", label: "Class Code (Bangla)", type: "text", placeholder: "যেমন: ৬ম" },
       { name: "class_name", label: "Class Name", type: "text", required: true },
       { name: "class_name_bn", label: "Class Name (Bangla)", type: "text", placeholder: "যেমন: ষষ্ঠ শ্রেণি" },
       { name: "numeric_level", label: "Numeric Level", type: "number" },
@@ -320,6 +321,7 @@ const modules = [
     ],
     columns: [
       { key: "class_code", label: "Code" },
+      { key: "class_code_bn", label: "Bangla Code" },
       { key: "level_name", label: "Level" },
       { key: "class_name", label: "Class Name" },
       { key: "class_name_bn", label: "Bangla Name" },

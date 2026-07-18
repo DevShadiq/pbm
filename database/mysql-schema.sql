@@ -243,6 +243,7 @@ CREATE TABLE class_levels (
   institution_id      BIGINT NOT NULL REFERENCES institutions(institution_id) ON DELETE CASCADE,
   level_id            BIGINT REFERENCES academic_levels(level_id) ON DELETE SET NULL,
   class_code          VARCHAR(30) NOT NULL,
+  class_code_bn       VARCHAR(30),
   class_name          VARCHAR(100) NOT NULL, -- Play, One, Ten, HSC 1st Year
   class_name_bn       VARCHAR(100),
   numeric_level       INT,

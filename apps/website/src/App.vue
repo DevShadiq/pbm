@@ -265,11 +265,11 @@
             <div class="text-center mb-14">
                 <span class="inline-block bg-bdGreen-100 text-bdGreen-700 text-sm font-semibold px-4 py-1 rounded-full mb-4">একাডেমিক</span>
                 <h2 class="text-3xl md:text-4xl font-black text-gray-800">শিক্ষা কার্যক্রম</h2>
-                <p class="text-gray-500 mt-3">জাতীয় শিক্ষাক্রম (মাদরাসা শিক্ষা বোর্ড) অনুসারে পরিচালিত</p>
+                <p class="text-gray-500 mt-3">প্রতিষ্ঠানের সক্রিয় একাডেমিক তথ্য</p>
             </div>
 
             <!-- Tabs -->
-            <div class="flex flex-wrap justify-center gap-3 mb-12">
+            <div v-if="academicTabs.length" class="flex flex-wrap justify-center gap-3 mb-12">
                 <button v-for="tab in academicTabs" :key="tab.id" @click="activeAcademicTab = tab.id"
                         class="tab-btn px-6 py-3 rounded-xl text-sm font-bold border-2 border-gray-200"
                         :class="activeAcademicTab === tab.id ? 'active border-bdGreen-600' : 'text-gray-600 hover:border-bdGreen-300'">
@@ -279,64 +279,26 @@
 
             <!-- Tab Content -->
             <transition name="fade" mode="out-in">
-                <!-- School Section -->
-                <div v-if="activeAcademicTab === 'school'" key="school" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div v-for="(cls, i) in schoolClasses" :key="i" class="card-hover bg-gradient-to-br from-white to-bdGreen-50 rounded-2xl p-6 border border-bdGreen-100">
-                        <div class="w-14 h-14 rounded-2xl bg-bdGreen-600 text-white flex items-center justify-center text-xl font-black mb-4">{{ cls.name }}</div>
-                        <h3 class="font-bold text-lg text-gray-800 mb-2">{{ cls.full }}</h3>
+                <div v-if="academicLoading" key="loading" class="py-12 text-center text-gray-500">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>একাডেমিক তথ্য লোড হচ্ছে...
+                </div>
+                <div v-else-if="filteredAcademicClasses.length" :key="activeAcademicTab" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div v-for="cls in filteredAcademicClasses" :key="cls.class_id" class="card-hover bg-gradient-to-br from-white to-bdGreen-50 rounded-2xl p-6 border border-bdGreen-100">
+                        <div class="w-14 h-14 rounded-2xl bg-bdGreen-600 text-white flex items-center justify-center text-lg font-black mb-4">{{ cls.class_code_bn || cls.class_code }}</div>
+                        <h3 class="font-bold text-lg text-gray-800 mb-2">{{ cls.class_name_bn || cls.class_name }}</h3>
                         <div class="space-y-2 text-sm text-gray-500">
-                            <p><i class="fas fa-users mr-2 text-bdGreen-500"></i>আসন সংখ্যা: <span class="font-semibold text-gray-700">{{ cls.seats }}</span></p>
-                            <p><i class="fas fa-section mr-2 text-bdGreen-500"></i>শাখা: <span class="font-semibold text-gray-700">{{ cls.sections }}</span></p>
-                            <p><i class="fas fa-clock mr-2 text-bdGreen-500"></i>শিফট: <span class="font-semibold text-gray-700">{{ cls.shift }}</span></p>
+                            <p><i class="fas fa-layer-group mr-2 text-bdGreen-500"></i>স্তর: <span class="font-semibold text-gray-700">{{ cls.level_name_bn || cls.level_name || 'নির্ধারিত নয়' }}</span></p>
+                            <p><i class="fas fa-section mr-2 text-bdGreen-500"></i>উপলব্ধ শাখা: <span class="font-semibold text-gray-700">{{ sectionNames || 'তথ্য নেই' }}</span></p>
+                            <p><i class="fas fa-clock mr-2 text-bdGreen-500"></i>পরিচালিত শিফট: <span class="font-semibold text-gray-700">{{ shiftNames || 'তথ্য নেই' }}</span></p>
                         </div>
-                        <button @click="showToast('ভর্তি বিজ্ঞপ্তি শীঘ্রই প্রকাশ করা হবে', 'info')" 
+                        <button @click="showToast(`${cls.class_name_bn || cls.class_name} এর তথ্য প্রদর্শিত হচ্ছে`, 'info')"
                                 class="mt-4 w-full py-2.5 rounded-xl border-2 border-bdGreen-600 text-bdGreen-600 font-bold text-sm hover:bg-bdGreen-600 hover:text-white transition-all">
                             বিস্তারিত দেখুন
                         </button>
                     </div>
                 </div>
-
-                <!-- College Section -->
-                <div v-else-if="activeAcademicTab === 'college'" key="college" class="grid md:grid-cols-2 gap-6">
-                    <div v-for="(dept, i) in collegeDepts" :key="i" class="card-hover bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                        <div class="h-3 rounded-t-2xl" :style="{background: dept.color}"></div>
-                        <div class="p-6">
-                            <div class="flex items-center gap-4 mb-4">
-                                <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl" :style="{background: dept.color}">
-                                    <i :class="dept.icon"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-lg text-gray-800">{{ dept.name }}</h3>
-                                    <p class="text-xs text-gray-400">{{ dept.nameEn }}</p>
-                                </div>
-                            </div>
-                            <p class="text-sm text-gray-500 mb-4">{{ dept.description }}</p>
-                            <div class="grid grid-cols-2 gap-3 text-sm">
-                                <div class="bg-gray-50 rounded-xl p-3 text-center">
-                                    <div class="font-black text-xl text-gray-800">{{ dept.seats }}</div>
-                                    <div class="text-xs text-gray-400">আসন সংখ্যা</div>
-                                </div>
-                                <div class="bg-gray-50 rounded-xl p-3 text-center">
-                                    <div class="font-black text-xl text-gray-800">{{ dept.gpa }}</div>
-                                    <div class="text-xs text-gray-400">ন্যূনতম GPA</div>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex flex-wrap gap-2">
-                                <span v-for="sub in dept.subjects" :key="sub" class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full">{{ sub }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Facilities -->
-                <div v-else-if="activeAcademicTab === 'facility'" key="facility" class="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-                    <div v-for="(f, i) in facilities" :key="i" class="card-hover bg-white rounded-2xl p-6 border border-gray-100 text-center group">
-                        <div class="w-16 h-16 mx-auto rounded-2xl bg-bdGreen-50 text-bdGreen-600 flex items-center justify-center text-2xl mb-4 group-hover:bg-bdGreen-600 group-hover:text-white transition-all duration-300">
-                            <i :class="f.icon"></i>
-                        </div>
-                        <h4 class="font-bold text-gray-800 mb-2">{{ f.name }}</h4>
-                        <p class="text-xs text-gray-400">{{ f.desc }}</p>
-                    </div>
+                <div v-else key="empty" class="py-12 text-center text-gray-500">
+                    <i class="fas fa-school text-bdGreen-500 mr-2"></i>বর্তমানে কোনো সক্রিয় শিক্ষা কার্যক্রম পাওয়া যায়নি।
                 </div>
             </transition>
         </div>
@@ -445,14 +407,16 @@
                         <div v-else class="w-full h-full bg-bdGreen-100 text-bdGreen-600 flex items-center justify-center">
                             <i class="fas fa-user-tie text-6xl"></i>
                         </div>
-                        <div class="teacher-overlay absolute inset-0 bg-gradient-to-t from-bdGreen-900/90 via-bdGreen-900/40 to-transparent flex items-end p-4">
+                        <div v-if="t.email || t.phone" class="teacher-overlay absolute inset-0 bg-gradient-to-t from-bdGreen-900/90 via-bdGreen-900/40 to-transparent flex items-end p-4">
                             <div class="flex gap-2">
-                                <button class="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/40 transition-colors text-xs">
+                                <a v-if="t.email" :href="`mailto:${t.email}`" :aria-label="`${t.name}কে ইমেইল করুন`" title="ইমেইল করুন"
+                                   class="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/40 transition-colors text-xs">
                                     <i class="fas fa-envelope"></i>
-                                </button>
-                                <button class="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/40 transition-colors text-xs">
+                                </a>
+                                <a v-if="t.phone" :href="phoneHref(t.phone)" :aria-label="`${t.name}কে কল করুন`" title="কল করুন"
+                                   class="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/40 transition-colors text-xs">
                                     <i class="fas fa-phone"></i>
-                                </button>
+                                </a>
                             </div>
                         </div>
                         <span class="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full"
@@ -922,12 +886,40 @@ const adminLoginUrl = import.meta.env.VITE_ADMIN_URL
         const noticeFilters = ['সকল', 'ভর্তি', 'পরীক্ষা', 'প্রশাসন'];
 
         // Academic
-        const activeAcademicTab = ref('school');
-        const academicTabs = [
-            { id: 'school', label: 'বিদ্যালয়', icon: 'fas fa-school' },
-            { id: 'college', label: 'কলেজ', icon: 'fas fa-university' },
-            { id: 'facility', label: 'সুবিধাসমূহ', icon: 'fas fa-building' }
-        ];
+        const activeAcademicTab = ref('all');
+        const academicLoading = ref(true);
+        const academicData = ref({ levels: [], classes: [], sections: [], shifts: [] });
+        const academicTabs = computed(() => {
+            const levels = academicData.value.levels || [];
+            return levels.length
+                ? [{ id: 'all', label: 'সকল শ্রেণি', icon: 'fas fa-school' }, ...levels.map(level => ({
+                    id: String(level.level_id),
+                    label: level.level_name_bn || level.level_name,
+                    icon: 'fas fa-layer-group',
+                }))]
+                : [{ id: 'all', label: 'সকল শ্রেণি', icon: 'fas fa-school' }];
+        });
+        const filteredAcademicClasses = computed(() => {
+            const classes = academicData.value.classes || [];
+            return activeAcademicTab.value === 'all'
+                ? classes
+                : classes.filter(cls => String(cls.level_id) === activeAcademicTab.value);
+        });
+        const sectionNames = computed(() => (academicData.value.sections || [])
+            .map(section => section.section_name_bn || section.section_name)
+            .filter(Boolean)
+            .join(', '));
+        const shiftNames = computed(() => (academicData.value.shifts || [])
+            .map(shift => shift.shift_name_bn || shift.shift_name)
+            .filter(Boolean)
+            .join(', '));
+        const phoneHref = (phone) => {
+            const banglaDigits = '০১২৩৪৫৬৭৮৯';
+            const normalized = String(phone)
+                .replace(/[০-৯]/g, digit => String(banglaDigits.indexOf(digit)))
+                .replace(/[^+\d]/g, '');
+            return `tel:${normalized}`;
+        };
 
         // Teacher
         const teacherFilter = ref('সকল');
@@ -1012,31 +1004,6 @@ const adminLoginUrl = import.meta.env.VITE_ADMIN_URL
             { day: '১৪', month: 'এপ্রি', title: 'বাংলা নববর্ষ উদযাপন', time: 'সকাল ৭:০০' },
             { day: '১', month: 'মে', title: 'মে দিবস উদযাপন', time: 'সকাল ৮:০০' },
             { day: '১৬', month: 'ডিসে', title: 'বিজয় দিবস উদযাপন', time: 'সকাল ৬:৩০' }
-        ];
-
-        const schoolClasses = [
-            { name: '৬ম', full: 'ষষ্ঠ শ্রেণি', seats: '১২০', sections: '২ (ক, খ)', shift: 'মর্নিং' },
-            { name: '৭ম', full: 'সপ্তম শ্রেণি', seats: '১২০', sections: '২ (ক, খ)', shift: 'মর্নিং' },
-            { name: '৮ম', full: 'অষ্টম শ্রেণি', seats: '১২০', sections: '২ (ক, খ)', shift: 'মর্নিং' },
-            { name: '৯ম', full: 'নবম শ্রেণি', seats: '২৪০', sections: '৪ (ক, খ, গ, ঘ)', shift: 'মর্নিং/ডে' },
-            { name: '১০ম', full: 'দশম শ্রেণি', seats: '২৪০', sections: '৪ (ক, খ, গ, ঘ)', shift: 'মর্নিং/ডে' }
-        ];
-
-        const collegeDepts = [
-            { name: 'বিজ্ঞান বিভাগ', nameEn: 'Science', icon: 'fas fa-flask', color: '#16a34a', seats: '১২০', gpa: '৫.০০', description: 'দাখিল ও আলিম পর্যায়ে বিজ্ঞান বিভাগের পাঠদান', subjects: ['পদার্থবিজ্ঞান', 'রসায়ন', 'জীববিজ্ঞান', 'উচ্চতর গণিত'] },
-            { name: 'মানবিক বিভাগ', nameEn: 'Humanities', icon: 'fas fa-book-open', color: '#7c3aed', seats: '১২০', gpa: '৩.৫০', description: 'দাখিল ও আলিম পর্যায়ে মানবিক বিভাগের পাঠদান', subjects: ['ইতিহাস', 'ভূগোল', 'পৌরনীতি', 'অর্থনীতি'] },
-            { name: 'ব্যবসায় শিক্ষা বিভাগ', nameEn: 'Business Studies', icon: 'fas fa-chart-line', color: '#ea580c', seats: '১২০', gpa: '৪.০০', description: 'দাখিল ও আলিম পর্যায়ে ব্যবসায় শিক্ষা বিভাগের পাঠদান', subjects: ['হিসাববিজ্ঞান', 'ব্যবসায় সংগঠন', 'ফিন্যান্স', 'ব্যবস্থাপনা'] }
-        ];
-
-        const facilities = [
-            { name: 'কম্পিউটার ল্যাব', icon: 'fas fa-desktop', desc: 'আধুনিক কম্পিউটার ল্যাব' },
-            { name: 'বিজ্ঞানাগার', icon: 'fas fa-microscope', desc: 'সমৃদ্ধ বিজ্ঞানাগার' },
-            { name: 'লাইব্রেরি', icon: 'fas fa-book', desc: '২০,০০০+ বইয়ের লাইব্রেরি' },
-            { name: 'খেলার মাঠ', icon: 'fas fa-futbol', desc: 'বড় খেলার মাঠ' },
-            { name: 'মসজিদ', icon: 'fas fa-mosque', desc: 'ছাত্রাবাস সংলগ্ন মসজিদ' },
-            { name: 'ছাত্রাবাস', icon: 'fas fa-building', desc: 'ছাত্র ও ছাত্রী ছাত্রাবাস' },
-            { name: 'অডিটোরিয়াম', icon: 'fas fa-theater-masks', desc: '৫০০ আসনের অডিটোরিয়াম' },
-            { name: 'ক্যান্টিন', icon: 'fas fa-utensils', desc: 'পুষ্টিকর খাবারের ব্যবস্থা' }
         ];
 
         const resultStats = [
@@ -1145,8 +1112,21 @@ const adminLoginUrl = import.meta.env.VITE_ADMIN_URL
                     teachers.value = data.teachers;
                     if (!teacherFilters.value.includes(teacherFilter.value)) teacherFilter.value = 'সকল';
                 }
+                if (data.source === 'backend' && data.academic) {
+                    academicData.value = {
+                        levels: Array.isArray(data.academic.levels) ? data.academic.levels : [],
+                        classes: Array.isArray(data.academic.classes) ? data.academic.classes : [],
+                        sections: Array.isArray(data.academic.sections) ? data.academic.sections : [],
+                        shifts: Array.isArray(data.academic.shifts) ? data.academic.shifts : [],
+                    };
+                    if (!academicTabs.value.some(tab => tab.id === activeAcademicTab.value)) {
+                        activeAcademicTab.value = 'all';
+                    }
+                }
             } catch (error) {
                 console.warn('Public data API unavailable, using bundled fallback data.', error);
+            } finally {
+                academicLoading.value = false;
             }
         };
 
