@@ -5,6 +5,7 @@ import AppLayout from "../components/layout/AppLayout.vue";
 import LoginView from "../views/auth/LoginView.vue";
 import ForgotPasswordView from "../views/auth/ForgotPasswordView.vue";
 import ResetPasswordView from "../views/auth/ResetPasswordView.vue";
+import MobileOtpResetView from "../views/auth/MobileOtpResetView.vue";
 import DashboardView from "../views/dashboard/DashboardView.vue";
 
 import UserListView from "../views/users/UserListView.vue";
@@ -80,6 +81,11 @@ const routes = [
     path: "/reset-password",
     name: "ResetPassword",
     component: ResetPasswordView,
+  },
+  {
+    path: "/forgot-password/mobile",
+    name: "MobileOtpPasswordReset",
+    component: MobileOtpResetView,
   },
 
   {

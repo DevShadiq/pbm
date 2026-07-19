@@ -284,7 +284,7 @@ router.post(
       if (error.code === "23505") {
         return res.status(409).json({
           success: false,
-          message: "Username or email already exists",
+          message: "Username, email, or mobile already exists",
         });
       }
 
@@ -584,7 +584,7 @@ router.put(
       if (error.code === "23505") {
         return res.status(409).json({
           success: false,
-          message: "Username or email already exists",
+          message: "Username, email, or mobile already exists",
         });
       }
 

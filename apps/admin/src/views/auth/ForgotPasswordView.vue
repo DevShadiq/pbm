@@ -1,5 +1,5 @@
 <template>
-  <ForgotPasswordForm :loading="loading" @submit="requestReset" @back-login="router.push('/login')" />
+  <ForgotPasswordForm :loading="loading" @submit="requestReset" @back-login="router.push('/login')" @mobile-reset="router.push('/forgot-password/mobile')" />
 </template>
 
 <script setup>

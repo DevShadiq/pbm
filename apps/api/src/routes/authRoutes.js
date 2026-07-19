@@ -5,6 +5,7 @@ import crypto from "crypto";
 import pool from "../config/db.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 import { sendPasswordResetEmail } from "../services/brevoEmailService.js";
+import { sendBulkSmsBd } from "../services/bulkSmsBdService.js";
 
 const router = express.Router();
 const RESET_RESPONSE_MESSAGE =
@@ -54,6 +55,22 @@ function isStrongPassword(password) {
     /[A-Z]/.test(password) &&
     /\d/.test(password)
   );
+}
+
+function normalizeBangladeshiMobile(value) {
+  const compact = String(value || "").replace(/[\s()-]/g, "");
+  const normalized = compact.startsWith("+880") ? compact.slice(1) : compact.startsWith("01") ? `880${compact.slice(1)}` : compact;
+  return /^8801[3-9]\d{8}$/.test(normalized) ? normalized : null;
+}
+
+function mobileVariants(mobile) {
+  return [mobile, `+${mobile}`, `0${mobile.slice(3)}`];
+}
+
+function otpHash(otp) {
+  const secret = process.env.OTP_HASH_SECRET?.trim();
+  if (!secret) throw new Error("OTP_HASH_SECRET is not configured.");
+  return crypto.createHmac("sha256", secret).update(otp).digest("hex");
 }
 
 function isDatabaseAccessError(error) {
@@ -245,6 +262,116 @@ router.post("/forgot-password", async (req, res) => {
     }
 
     return res.json(response);
+  }
+});
+
+router.post("/forgot-password/mobile", async (req, res) => {
+  const mobile = normalizeBangladeshiMobile(req.body.mobile);
+  const message = "If an active account exists for this mobile number, an OTP has been sent.";
+
+  if (!mobile || !allowResetRequest(`mobile:${req.ip}:${mobile}`)) {
+    return res.json({ success: true, message });
+  }
+
+  try {
+    const userResult = await pool.query(
+      `SELECT user_id FROM sms.app_users WHERE mobile IN ($1, $2, $3) AND is_active = TRUE LIMIT 1`,
+      mobileVariants(mobile)
+    );
+    if (userResult.rowCount === 0) return res.json({ success: true, message });
+
+    const userId = userResult.rows[0].user_id;
+    const otp = crypto.randomInt(100000, 1000000).toString();
+    const requestedTtl = Number(process.env.PASSWORD_RESET_OTP_TTL_MINUTES || 5);
+    const ttlMinutes = Number.isFinite(requestedTtl) ? Math.min(30, Math.max(2, requestedTtl)) : 5;
+    const client = await pool.connect();
+
+    try {
+      await client.query("BEGIN");
+      await client.query(`DELETE FROM sms.password_reset_otps WHERE user_id = $1 AND used_at IS NULL`, [userId]);
+      await client.query(
+        `INSERT INTO sms.password_reset_otps (user_id, otp_hash, expires_at) VALUES ($1, $2, $3)`,
+        [userId, otpHash(otp), new Date(Date.now() + ttlMinutes * 60 * 1000)]
+      );
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+
+    await sendBulkSmsBd({
+      mobile,
+      message: `Your password reset OTP is ${otp}. It expires in ${ttlMinutes} minutes. Do not share this code.`,
+    });
+    return res.json({ success: true, message });
+  } catch (error) {
+    console.error("Password reset OTP SMS failed:", error.message);
+    return res.json({
+      success: true,
+      message,
+      ...(process.env.PASSWORD_RESET_DEBUG === "true" ? { deliveryError: error.message } : {}),
+    });
+  }
+});
+
+router.post("/reset-password/mobile-otp", async (req, res) => {
+  const mobile = normalizeBangladeshiMobile(req.body.mobile);
+  const otp = String(req.body.otp || "");
+  const { password } = req.body;
+
+  if (!mobile || !/^\d{6}$/.test(otp)) {
+    return res.status(400).json({ success: false, message: "Enter a valid mobile number and six-digit OTP." });
+  }
+  if (!isStrongPassword(password)) {
+    return res.status(400).json({ success: false, message: "Password must be at least 8 characters and include uppercase, lowercase, and a number." });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const userResult = await client.query(
+      `SELECT user_id FROM sms.app_users WHERE mobile IN ($1, $2, $3) AND is_active = TRUE LIMIT 1 FOR UPDATE`,
+      mobileVariants(mobile)
+    );
+    if (userResult.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ success: false, message: "This OTP is invalid or has expired." });
+    }
+
+    const userId = userResult.rows[0].user_id;
+    const otpResult = await client.query(
+      `SELECT otp_id, otp_hash FROM sms.password_reset_otps WHERE user_id = $1 AND used_at IS NULL AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1 FOR UPDATE`,
+      [userId]
+    );
+    if (otpResult.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ success: false, message: "This OTP is invalid or has expired." });
+    }
+
+    const resetOtp = otpResult.rows[0];
+    if (!crypto.timingSafeEqual(Buffer.from(resetOtp.otp_hash), Buffer.from(otpHash(otp)))) {
+      await client.query(
+        `UPDATE sms.password_reset_otps SET attempts = attempts + 1, used_at = CASE WHEN attempts + 1 >= 5 THEN NOW() ELSE used_at END WHERE otp_id = $1`,
+        [resetOtp.otp_id]
+      );
+      await client.query("COMMIT");
+      return res.status(400).json({ success: false, message: "This OTP is invalid or has expired." });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    await client.query(`UPDATE sms.password_reset_otps SET used_at = NOW() WHERE user_id = $1 AND used_at IS NULL`, [userId]);
+    await client.query(`UPDATE sms.password_reset_tokens SET used_at = NOW() WHERE user_id = $1 AND used_at IS NULL`, [userId]);
+    await client.query(`UPDATE sms.app_users SET password_hash = $1, password_changed_at = NOW() WHERE user_id = $2`, [passwordHash, userId]);
+    await client.query("COMMIT");
+    return res.json({ success: true, message: "Your password has been reset. You can now sign in." });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Mobile OTP password reset failed:", error.message);
+    return res.status(500).json({ success: false, message: "Unable to reset the password. Please try again." });
+  } finally {
+    client.release();
   }
 });
 

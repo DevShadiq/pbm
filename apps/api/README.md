@@ -23,3 +23,19 @@ Persistent uploads are stored under `uploads/` and production frontend builds ar
 4. Build the admin panel and restart the API. Users can then select **Forgot Password?** on `/admin/login`.
 
 The flow stores only a SHA-256 hash of each single-use token, invalidates earlier reset links for the user, and does not reveal whether an email address has an account.
+
+## Mobile OTP password reset (BulkSMSBD)
+
+The mobile value on `app_users` is unique. Run `database/migrations/20260719_mobile_otp_password_reset.sql` once before enabling this feature; resolve duplicate non-empty mobile numbers first.
+
+Add these server-only values to `apps/api/.env`:
+
+```env
+BULKSMSBD_API_KEY=your_bulksmsbd_api_key
+BULKSMSBD_SENDER_ID=your_approved_sender_id
+BULKSMSBD_API_URL=http://bulksmsbd.net/api/smsapi
+OTP_HASH_SECRET=a_separate_long_random_secret
+PASSWORD_RESET_OTP_TTL_MINUTES=5
+```
+
+Users can select **Use mobile OTP instead** from the email reset screen. Mobile values may be entered as `01XXXXXXXXX`, `8801XXXXXXXXX`, or `+8801XXXXXXXXX`. The OTP expires after five minutes, is stored as an HMAC hash, and is invalidated after five failed checks.

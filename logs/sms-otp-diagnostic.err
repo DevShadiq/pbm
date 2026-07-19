@@ -1,0 +1,1 @@
+Password reset OTP SMS failed: BulkSMSBD rejected the SMS request (200): Your ip 103.184.172.73 not Whitelisted. Please whitelist ip from Phonebook

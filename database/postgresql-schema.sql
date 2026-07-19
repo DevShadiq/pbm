@@ -113,7 +113,7 @@ CREATE TABLE sms.app_users (
   branch_id           BIGINT REFERENCES sms.branches(branch_id) ON DELETE SET NULL,
   username            VARCHAR(80) UNIQUE NOT NULL,
   email               VARCHAR(150) UNIQUE,
-  mobile              VARCHAR(30),
+  mobile              VARCHAR(30) UNIQUE,
   password_hash       TEXT NOT NULL,
   full_name           VARCHAR(150) NOT NULL,
   user_type           VARCHAR(30) NOT NULL DEFAULT 'STAFF', -- ADMIN, TEACHER, STAFF, STUDENT, GUARDIAN

@@ -26,6 +26,9 @@
       <button class="back-btn" type="button" @click="$emit('back-login')">
         ← Back to Login
       </button>
+      <button class="mobile-btn" type="button" @click="$emit('mobile-reset')">
+        Use mobile OTP instead
+      </button>
     </div>
   </div>
 </template>
@@ -40,7 +43,7 @@ defineProps({
   }
 })
 
-const emit = defineEmits(['submit', 'back-login'])
+const emit = defineEmits(['submit', 'back-login', 'mobile-reset'])
 
 const email = ref('')
 const error = ref('')
@@ -170,6 +173,16 @@ const handleSubmit = () => {
   border: none;
   background: transparent;
   color: #2563eb;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mobile-btn {
+  width: 100%;
+  margin-top: 10px;
+  border: none;
+  background: transparent;
+  color: #7c3aed;
   font-weight: 800;
   cursor: pointer;
 }
