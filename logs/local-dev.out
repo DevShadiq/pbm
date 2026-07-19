@@ -94,3 +94,9 @@ Notice schema synchronized
 Employee schema synchronized
 Security catalog synchronized
 Server running on http://0.0.0.0:5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+Notice schema synchronized
+Employee schema synchronized
+Security catalog synchronized
+Server running on http://0.0.0.0:5000

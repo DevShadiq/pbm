@@ -138,6 +138,26 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    if (!user.is_super_admin) {
+      const roleResult = await pool.query(
+        `
+        SELECT 1
+        FROM sms.user_roles ur
+        JOIN sms.roles r ON r.role_id = ur.role_id AND r.status = 'ACTIVE'
+        WHERE ur.user_id = $1
+        LIMIT 1
+        `,
+        [user.user_id]
+      );
+
+      if (roleResult.rowCount === 0) {
+        return res.status(403).json({
+          success: false,
+          message: "Your user role has not been assigned. Please contact an administrator.",
+        });
+      }
+    }
+
     if (!process.env.JWT_SECRET) {
       return res.status(500).json({
         success: false,
