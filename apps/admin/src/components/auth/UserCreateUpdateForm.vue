@@ -71,8 +71,8 @@
       <div class="field">
         <label>Active Status *</label>
         <select v-model="form.is_active">
-          <option :value="true">ACTIVE</option>
-          <option :value="false">INACTIVE</option>
+          <option :value="1">1 - ACTIVE</option>
+          <option :value="0">0 - INACTIVE</option>
         </select>
       </div>
 
@@ -156,7 +156,7 @@ const form = reactive({
   user_type: "STAFF",
   avatar_url: null,
   is_super_admin: false,
-  is_active: true,
+  is_active: 1,
 });
 
 function toNumberOrNull(value) {
@@ -176,7 +176,7 @@ function buildPayload() {
     user_type: form.user_type,
     avatar_url: form.avatar_url,
     is_super_admin: form.user_type === "SUPER_ADMIN",
-    is_active: form.is_active,
+    is_active: Number(form.is_active) === 1,
   };
 
   if (form.password) {
@@ -206,7 +206,7 @@ async function loadUser() {
         user_type: data.user.user_type || "STAFF",
         avatar_url: data.user.avatar_url || null,
         is_super_admin: data.user.is_super_admin || false,
-        is_active: data.user.is_active,
+        is_active: [false, 0, "0", "false"].includes(data.user.is_active) ? 0 : 1,
       });
     }
   } catch (error) {
@@ -261,7 +261,7 @@ function resetForm() {
   form.user_type = "STAFF";
   form.avatar_url = null;
   form.is_super_admin = false;
-  form.is_active = true;
+  form.is_active = 1;
 }
 
 onMounted(loadUser);

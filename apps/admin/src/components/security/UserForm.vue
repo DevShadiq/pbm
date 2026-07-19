@@ -114,8 +114,8 @@ const saving = ref(false);
 const message = ref("");
 
 const statusOptions = [
-  { label: "Active", value: "true" },
-  { label: "Inactive", value: "false" },
+  { label: "1 - Active", value: "1" },
+  { label: "0 - Inactive", value: "0" },
 ];
 
 const roles = ref([]);
@@ -138,7 +138,7 @@ const form = reactive({
   mobile: "",
   user_type: "STAFF",
   password: "",
-  is_active: "true",
+  is_active: "1",
 });
 
 function resetForm() {
@@ -150,7 +150,7 @@ function resetForm() {
   form.mobile = "";
   form.user_type = "STAFF";
   form.password = "";
-  form.is_active = "true";
+  form.is_active = "1";
 }
 
 function fillForm(data) {
@@ -163,8 +163,8 @@ function fillForm(data) {
   form.user_type = String(data.user_type || "STAFF").toUpperCase();
   form.password = "";
   form.is_active = [false, 0, "0", "false"].includes(data.is_active)
-    ? "false"
-    : "true";
+    ? "0"
+    : "1";
 }
 
 function buildPayload() {
@@ -176,7 +176,7 @@ function buildPayload() {
     email: form.email || null,
     mobile: form.mobile || null,
     user_type: form.user_type,
-    is_active: form.is_active === "true",
+    is_active: form.is_active === "1",
   };
 
   if (form.password) {

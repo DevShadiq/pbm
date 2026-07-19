@@ -6,6 +6,14 @@ import { requirePermission } from "../middleware/permissionMiddleware.js";
 
 const router = express.Router();
 
+function toBoolean(value, fallback = true) {
+  if (value === undefined || value === null || value === "") {
+    return fallback;
+  }
+
+  return ![false, 0, "0", "false"].includes(value);
+}
+
 async function getActiveRole(userType, institutionId) {
   const result = await pool.query(
     `
@@ -180,7 +188,6 @@ router.post(
         full_name,
         user_type,
         avatar_url,
-        is_super_admin,
         is_active,
       } = req.body;
 
@@ -205,17 +212,17 @@ router.post(
         ? institution_id || null
         : req.user.institution_id;
 
-      const role = await getActiveRole(normalizedUserType, finalInstitutionId);
-      if (!role) {
+      const role = normalizedUserType === "SUPER_ADMIN"
+        ? null
+        : await getActiveRole(normalizedUserType, finalInstitutionId);
+      if (normalizedUserType !== "SUPER_ADMIN" && !role) {
         return res.status(400).json({
           success: false,
           message: "User type must match an active role for the institution.",
         });
       }
 
-      const finalIsSuperAdmin = req.user.is_super_admin
-        ? is_super_admin || false
-        : false;
+      const finalIsSuperAdmin = Boolean(req.user.is_super_admin) && normalizedUserType === "SUPER_ADMIN";
 
       const passwordHash = await bcrypt.hash(password, 10);
 
@@ -262,7 +269,7 @@ router.post(
           normalizedUserType,
           avatar_url || null,
           finalIsSuperAdmin,
-          is_active ?? true,
+          toBoolean(is_active),
         ]
       );
 
@@ -305,7 +312,6 @@ router.put(
         full_name,
         user_type,
         avatar_url,
-        is_super_admin,
         is_active,
       } = req.body;
 
@@ -315,6 +321,33 @@ router.put(
         return res.status(400).json({
           success: false,
           message: "Username, full name and user type are required",
+        });
+      }
+
+      const targetUserResult = await pool.query(
+        `
+        SELECT user_id, institution_id, is_super_admin, user_type
+        FROM sms.app_users
+        WHERE user_id = $1
+        `,
+        [req.params.user_id]
+      );
+
+      const targetUser = targetUserResult.rows[0];
+      if (!targetUser) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      if (
+        !req.user.is_super_admin &&
+        (targetUser.is_super_admin || String(targetUser.user_type).toUpperCase() === "SUPER_ADMIN")
+      ) {
+        return res.status(403).json({
+          success: false,
+          message: "Only super admin can update super admin user",
         });
       }
 
@@ -329,17 +362,17 @@ router.put(
         ? institution_id || null
         : req.user.institution_id;
 
-      const role = await getActiveRole(normalizedUserType, finalInstitutionId);
-      if (!role) {
+      const role = normalizedUserType === "SUPER_ADMIN"
+        ? null
+        : await getActiveRole(normalizedUserType, finalInstitutionId);
+      if (normalizedUserType !== "SUPER_ADMIN" && !role) {
         return res.status(400).json({
           success: false,
           message: "User type must match an active role for the institution.",
         });
       }
 
-      const finalIsSuperAdmin = req.user.is_super_admin
-        ? is_super_admin || false
-        : false;
+      const finalIsSuperAdmin = Boolean(req.user.is_super_admin) && normalizedUserType === "SUPER_ADMIN";
 
       let result;
 
@@ -388,7 +421,7 @@ router.put(
               normalizedUserType,
               avatar_url || null,
               finalIsSuperAdmin,
-              is_active ?? true,
+              toBoolean(is_active),
               req.params.user_id,
             ]
           );
@@ -435,7 +468,7 @@ router.put(
               normalizedUserType,
               avatar_url || null,
               finalIsSuperAdmin,
-              is_active ?? true,
+              toBoolean(is_active),
               req.params.user_id,
               req.user.institution_id,
             ]
@@ -481,7 +514,7 @@ router.put(
               normalizedUserType,
               avatar_url || null,
               finalIsSuperAdmin,
-              is_active ?? true,
+              toBoolean(is_active),
               req.params.user_id,
             ]
           );
@@ -525,7 +558,7 @@ router.put(
               normalizedUserType,
               avatar_url || null,
               finalIsSuperAdmin,
-              is_active ?? true,
+              toBoolean(is_active),
               req.params.user_id,
               req.user.institution_id,
             ]
