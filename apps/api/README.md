@@ -26,7 +26,7 @@ The flow stores only a SHA-256 hash of each single-use token, invalidates earlie
 
 ## Mobile OTP password reset (BulkSMSBD)
 
-The mobile value on `app_users` is unique. Run `database/migrations/20260719_mobile_otp_password_reset.sql` once before enabling this feature; resolve duplicate non-empty mobile numbers first.
+The mobile value on `app_users` is unique. Run `database/migrations/20260719_mobile_otp_password_reset.sql` and `database/migrations/20260719_limit_mobile_otp_resets.sql` once before enabling this feature; resolve duplicate non-empty mobile numbers first.
 
 Add these server-only values to `apps/api/.env`:
 
@@ -38,4 +38,4 @@ OTP_HASH_SECRET=a_separate_long_random_secret
 PASSWORD_RESET_OTP_TTL_MINUTES=5
 ```
 
-Users can select **Use mobile OTP instead** from the email reset screen. Mobile values may be entered as `01XXXXXXXXX`, `8801XXXXXXXXX`, or `+8801XXXXXXXXX`. The OTP expires after five minutes, is stored as an HMAC hash, and is invalidated after five failed checks.
+Users can select **Use mobile OTP instead** from the email reset screen. Mobile values may be entered as `01XXXXXXXXX`, `8801XXXXXXXXX`, or `+8801XXXXXXXXX`. The OTP expires after five minutes, is stored as an HMAC hash, and is invalidated after five failed checks. A user can receive at most **two mobile OTP reset messages per calendar day**; subsequent requests do not call BulkSMSBD, so users must use the email reset route.

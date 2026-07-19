@@ -10,6 +10,7 @@ import { sendBulkSmsBd } from "../services/bulkSmsBdService.js";
 const router = express.Router();
 const RESET_RESPONSE_MESSAGE =
   "If an active account exists for this email, a password reset link has been sent.";
+const MAX_MOBILE_RESET_OTPS_PER_DAY = 2;
 const resetRequestAttempts = new Map();
 
 function getResetUrl(token) {
@@ -288,7 +289,18 @@ router.post("/forgot-password/mobile", async (req, res) => {
 
     try {
       await client.query("BEGIN");
-      await client.query(`DELETE FROM sms.password_reset_otps WHERE user_id = $1 AND used_at IS NULL`, [userId]);
+      // Lock the user row so simultaneous requests cannot bypass the two-SMS daily limit.
+      await client.query(`SELECT user_id FROM sms.app_users WHERE user_id = $1 FOR UPDATE`, [userId]);
+      const dailyOtpCount = await client.query(
+        `SELECT COUNT(*) AS total FROM sms.password_reset_otps WHERE user_id = $1 AND created_at >= CURDATE()`,
+        [userId]
+      );
+      if (Number(dailyOtpCount.rows[0].total) >= MAX_MOBILE_RESET_OTPS_PER_DAY) {
+        await client.query("COMMIT");
+        return res.json({ success: true, message: "If an active account exists for this mobile number, an OTP has been sent." });
+      }
+      // Retain prior requests for the daily charge-control limit, but make old codes unusable.
+      await client.query(`UPDATE sms.password_reset_otps SET used_at = NOW() WHERE user_id = $1 AND used_at IS NULL`, [userId]);
       await client.query(
         `INSERT INTO sms.password_reset_otps (user_id, otp_hash, expires_at) VALUES ($1, $2, $3)`,
         [userId, otpHash(otp), new Date(Date.now() + ttlMinutes * 60 * 1000)]

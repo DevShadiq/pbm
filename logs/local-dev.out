@@ -76,3 +76,21 @@ Notice schema synchronized
 Employee schema synchronized
 Security catalog synchronized
 Server running on http://0.0.0.0:5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+Notice schema synchronized
+Employee schema synchronized
+Security catalog synchronized
+Server running on http://0.0.0.0:5000
+[2m1:40:53 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/D:/pbm/apps/admin/src/views/auth/MobileOtpResetView.vue[22m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/server.js`[39m
+Notice schema synchronized
+Employee schema synchronized
+Security catalog synchronized
+Server running on http://0.0.0.0:5000

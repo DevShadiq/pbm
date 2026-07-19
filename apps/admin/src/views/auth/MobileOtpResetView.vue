@@ -1,7 +1,7 @@
 <template>
   <main class="page"><section class="card">
     <h2>{{ step === 'send' ? 'Reset by Mobile' : 'Verify OTP' }}</h2>
-    <p>{{ step === 'send' ? 'Enter the mobile number saved with your account.' : 'Enter the OTP and a new password.' }}</p>
+    <p>{{ step === 'send' ? 'Enter the mobile number saved with your account. Mobile OTP is limited to two requests per day.' : 'Enter the OTP and a new password.' }}</p>
     <form @submit.prevent="step === 'send' ? sendOtp() : resetPassword()">
       <label>Mobile number<input v-model.trim="mobile" inputmode="tel" placeholder="01XXXXXXXXX" :disabled="step !== 'send'" /></label>
       <template v-if="step === 'verify'">
