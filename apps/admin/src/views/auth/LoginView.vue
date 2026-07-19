@@ -2,6 +2,7 @@
   <LoginForm
     :loading="loading"
     @submit="handleLogin"
+    @forgot-password="router.push('/forgot-password')"
   />
 </template>
 

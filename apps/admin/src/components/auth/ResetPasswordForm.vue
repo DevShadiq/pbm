@@ -74,8 +74,8 @@ const errors = reactive({
 const passwordStrength = computed(() => {
   const value = form.password
 
-  if (value.length < 6) return 'Weak'
-  if (value.length >= 6 && value.length < 10) return 'Medium'
+  if (value.length < 8) return 'Weak'
+  if (value.length >= 8 && value.length < 10) return 'Medium'
   if (/[A-Z]/.test(value) && /[0-9]/.test(value) && /[^A-Za-z0-9]/.test(value)) {
     return 'Strong'
   }
@@ -96,7 +96,8 @@ const validate = () => {
   errors.confirmPassword = ''
 
   if (!form.password) errors.password = 'New password is required'
-  else if (form.password.length < 6) errors.password = 'Password must be at least 6 characters'
+  else if (!/[a-z]/.test(form.password) || !/[A-Z]/.test(form.password) || !/[0-9]/.test(form.password)) errors.password = 'Use uppercase, lowercase, and a number'
+  else if (form.password.length < 8) errors.password = 'Password must be at least 8 characters'
 
   if (!form.confirmPassword) errors.confirmPassword = 'Confirm password is required'
   else if (form.password !== form.confirmPassword) errors.confirmPassword = 'Password does not match'

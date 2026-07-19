@@ -5,7 +5,7 @@ apps/*/dist/
 *.log
 .env*
 apps/*/.env*
-!apps/*/.env.example
 !apps/admin/.env.production.example
 data/*.sqlite
 apps/website/public/webfonts/
+apps/api/.env.example

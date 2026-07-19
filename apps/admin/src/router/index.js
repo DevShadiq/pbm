@@ -3,6 +3,8 @@ import { createRouter, createWebHistory } from "vue-router";
 import AppLayout from "../components/layout/AppLayout.vue";
 
 import LoginView from "../views/auth/LoginView.vue";
+import ForgotPasswordView from "../views/auth/ForgotPasswordView.vue";
+import ResetPasswordView from "../views/auth/ResetPasswordView.vue";
 import DashboardView from "../views/dashboard/DashboardView.vue";
 
 import UserListView from "../views/users/UserListView.vue";
@@ -68,6 +70,16 @@ const routes = [
     meta: {
       guestOnly: true,
     },
+  },
+  {
+    path: "/forgot-password",
+    name: "ForgotPassword",
+    component: ForgotPasswordView,
+  },
+  {
+    path: "/reset-password",
+    name: "ResetPassword",
+    component: ResetPasswordView,
   },
 
   {
