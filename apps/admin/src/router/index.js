@@ -30,6 +30,8 @@ import StudentAdmissionView from '../views/student/StudentAdmissionView.vue'
 import StudentProfileView from '../views/student/StudentProfileView.vue'
 import StudentEditView from "../views/student/StudentEditView.vue";
 import EmployeeManagementView from "../views/employee/EmployeeManagementView.vue";
+import EventManagementView from "../views/event/EventManagementView.vue";
+import FeesManagementView from "../views/fees/FeesManagementView.vue";
 
 
 
@@ -323,7 +325,61 @@ const routes = [
     permission: "notice.management",
     action: "view",
   },
-}
+},
+{
+  path: "events",
+  name: "EventManagement",
+  component: EventManagementView,
+  meta: { permission: "event.management", action: "view" },
+},
+{
+  path: "fees",
+  name: "FeesDashboard",
+  component: FeesManagementView,
+  meta: { permission: "fee.report", action: "view", feeSection: "dashboard" },
+},
+{
+  path: "fees/heads",
+  name: "FeeHeads",
+  component: FeesManagementView,
+  meta: { permission: "fee.management", action: "view", feeSection: "heads" },
+},
+{
+  path: "fees/structures",
+  name: "FeeStructures",
+  component: FeesManagementView,
+  meta: { permission: "fee.structure", action: "view", feeSection: "structures" },
+},
+{
+  path: "fees/assignments",
+  name: "FeeAssignments",
+  component: FeesManagementView,
+  meta: { permission: "fee.assignment", action: "view", feeSection: "assignments" },
+},
+{
+  path: "fees/invoices",
+  name: "FeeInvoices",
+  component: FeesManagementView,
+  meta: { permission: "fee.invoice", action: "view", feeSection: "invoices" },
+},
+{
+  path: "fees/collections",
+  name: "FeeCollections",
+  component: FeesManagementView,
+  meta: { permission: "fee.collection", action: "view", feeSection: "collections" },
+},
+{
+  path: "fees/waivers",
+  name: "FeeWaivers",
+  component: FeesManagementView,
+  meta: { permission: "fee.waiver", action: "view", feeSection: "waivers" },
+},
+{
+  path: "fees/reports",
+  name: "FeeReports",
+  component: FeesManagementView,
+  meta: { permission: "fee.report", action: "view", feeSection: "reports" },
+},
     
     ],
   },

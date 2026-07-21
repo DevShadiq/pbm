@@ -255,6 +255,43 @@ export const noticeApi = {
   },
 };
 
+export const eventApi = {
+  getAll(params = {}) { return api.get("/events", { params }); },
+  create(data) { return api.post("/events", data); },
+  update(id, data) { return api.put(`/events/${id}`, data); },
+  delete(id) { return api.delete(`/events/${id}`); },
+};
+
+export const feeApi = {
+  lookups() { return api.get("/fees/lookups"); },
+  dashboard() { return api.get("/fees/dashboard"); },
+  heads() { return api.get("/fees/heads"); },
+  createHead(data) { return api.post("/fees/heads", data); },
+  updateHead(id, data) { return api.put(`/fees/heads/${id}`, data); },
+  structures() { return api.get("/fees/structures"); },
+  structure(id) { return api.get(`/fees/structures/${id}`); },
+  createStructure(data) { const structureId = data.fee_structure_id; if (structureId) { delete data.fee_structure_id; return api.put(`/fees/structures/${structureId}`, { ...data }); } return api.post("/fees/structures", data); },
+  updateStructure(id, data) { return api.put(`/fees/structures/${id}`, data); },
+  deleteStructure(id) { return api.delete(`/fees/structures/${id}`); },
+  assignments() { return api.get("/fees/assignments"); },
+  createAssignment(data) { return api.post("/fees/assignments", data); },
+  invoices() { return api.get("/fees/invoices"); },
+  generateInvoice(data) { return api.post("/fees/invoices/generate", data); },
+  generateBulkInvoices(data) { return api.post("/fees/invoices/generate-bulk", data); },
+  updateInvoice(id, data) { return api.put(`/fees/invoices/${id}`, data); },
+  regenerateInvoice(id, data) { return api.post(`/fees/invoices/${id}/regenerate`, data); },
+  deleteInvoice(id) { return api.delete(`/fees/invoices/${id}`); },
+  collections() { return api.get("/fees/collections"); },
+  createCollection(data) { return api.post("/fees/collections", data); },
+  updateCollection(id, data) { return api.put(`/fees/collections/${id}`, data); },
+  deleteCollection(id) { return api.delete(`/fees/collections/${id}`); },
+  waivers() { return api.get("/fees/waivers"); },
+  createWaiver(data) { const waiverId = data.waiver_id; if (waiverId) { delete data.waiver_id; return api.put(`/fees/waivers/${waiverId}`, { ...data }); } return api.post("/fees/waivers", data); },
+  updateWaiver(id, data) { return api.put(`/fees/waivers/${id}`, data); },
+  deleteWaiver(id) { return api.delete(`/fees/waivers/${id}`); },
+  approveWaiver(id) { return api.put(`/fees/waivers/${id}/approve`); },
+};
+
 export const employeeApi = {
   getEmployees(params = {}) { return api.get("/employees", { params }); },
   getEmployee(id) { return api.get(`/employees/${id}`); },

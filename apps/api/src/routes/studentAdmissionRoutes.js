@@ -4,6 +4,7 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { assignApplicableStructuresToEnrollment } from "../utils/autoAssignFees.js";
 
 
 const router = express.Router();
@@ -425,6 +426,12 @@ router.post("/full", async (req, res) => {
       toNull(enrollment.start_date),
       toNull(enrollment.end_date)
     ]);
+
+    await assignApplicableStructuresToEnrollment(client, {
+      studentId,
+      enrollmentId: enrollmentResult.rows[0].enrollment_id,
+      assignedBy: createdBy,
+    });
 
     /* ================= GUARDIANS INSERT ================= */
     for (const item of guardians) {
@@ -964,6 +971,12 @@ router.put("/full/:studentId", async (req, res) => {
       toNull(enrollment.start_date),
       toNull(enrollment.end_date)
     ]);
+
+    await assignApplicableStructuresToEnrollment(client, {
+      studentId,
+      enrollmentId: enrollmentResult.rows[0].enrollment_id,
+      assignedBy: changedBy,
+    });
 
     /* ================= GUARDIAN UPDATE ================= */
     await client.query(

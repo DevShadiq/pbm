@@ -8,6 +8,14 @@ const permissions = [
   ["student.admission", "Student Admission", "Students", "Admit new students"],
   ["employee.management", "Employee Management", "HR", "Manage departments, designations, and employees"],
   ["notice.management", "Notice Management", "Notices", "Create and publish categorized notices"],
+  ["event.management", "Event Management", "Events", "Create and publish calendar events"],
+  ["fee.management", "Fee Setup", "Fees", "Manage fee heads and fee setup"],
+  ["fee.structure", "Fee Structures", "Fees", "Create class-wise fee structures"],
+  ["fee.assignment", "Automatic Fee Assignment", "Fees", "View class-wise fee assignments created automatically"],
+  ["fee.invoice", "Fee Invoices", "Fees", "Create and generate student invoices"],
+  ["fee.collection", "Fee Collection", "Fees", "Collect student fee payments"],
+  ["fee.waiver", "Fee Waivers", "Fees", "Create and approve fee waivers"],
+  ["fee.report", "Fee Reports", "Fees", "View fee dashboard and due reports"],
   ["user.management", "User Management", "Security", "Manage application users"],
   ["role.management", "Role Management", "Security", "Manage security roles"],
   ["role.permission", "Role Permissions", "Security", "Assign permissions to roles"],
@@ -47,6 +55,44 @@ export async function ensureSecurityCatalog() {
       (parent_menu_id, menu_code, menu_title, route_path, icon_name, sort_order, is_visible, status)
     VALUES
       (NULL, 'EMPLOYEE_MANAGEMENT', 'Employee Management', '/employees', 'employee', 40, TRUE, 'ACTIVE')
+    ON DUPLICATE KEY UPDATE
+      menu_title = VALUES(menu_title),
+      route_path = VALUES(route_path),
+      icon_name = VALUES(icon_name),
+      sort_order = VALUES(sort_order),
+      is_visible = VALUES(is_visible),
+      status = VALUES(status)
+  `);
+
+  await pool.query(`
+    INSERT INTO sms.menus
+      (parent_menu_id, menu_code, menu_title, route_path, icon_name, sort_order, is_visible, status)
+    VALUES (NULL, 'FEES_MANAGEMENT', 'Fees Management', '#', 'fees', 50, TRUE, 'ACTIVE')
+    ON DUPLICATE KEY UPDATE menu_title=VALUES(menu_title), route_path=VALUES(route_path), icon_name=VALUES(icon_name), sort_order=VALUES(sort_order), is_visible=VALUES(is_visible), status=VALUES(status)
+  `);
+  const feeParentResult = await pool.query("SELECT menu_id FROM sms.menus WHERE menu_code = 'FEES_MANAGEMENT' LIMIT 1");
+  const feeParentId = feeParentResult.rows[0]?.menu_id;
+  const feeMenus = [
+    ['FEES_DASHBOARD', 'Fee Dashboard', '/fees', 'fees', 1],
+    ['FEE_HEADS', 'Fee Heads', '/fees/heads', 'fees', 2],
+    ['FEE_STRUCTURES', 'Fee Structures', '/fees/structures', 'fees', 3],
+    ['FEE_ASSIGNMENTS', 'Automatic Fee Assignment', '/fees/assignments', 'fees', 4],
+    ['FEE_INVOICES', 'Fee Invoices', '/fees/invoices', 'fees', 5],
+    ['FEE_COLLECTIONS', 'Fee Collection', '/fees/collections', 'fees', 6],
+    ['FEE_WAIVERS', 'Fee Waivers', '/fees/waivers', 'fees', 7],
+    ['FEE_REPORTS', 'Fee Reports', '/fees/reports', 'report', 8],
+  ];
+  for (const [menuCode, menuTitle, routePath, iconName, sortOrder] of feeMenus) {
+    await pool.query(`INSERT INTO sms.menus (parent_menu_id,menu_code,menu_title,route_path,icon_name,sort_order,is_visible,status)
+      VALUES ($1,$2,$3,$4,$5,$6,TRUE,'ACTIVE')
+      ON DUPLICATE KEY UPDATE parent_menu_id=VALUES(parent_menu_id),menu_title=VALUES(menu_title),route_path=VALUES(route_path),icon_name=VALUES(icon_name),sort_order=VALUES(sort_order),is_visible=TRUE,status='ACTIVE'`, [feeParentId, menuCode, menuTitle, routePath, iconName, sortOrder]);
+  }
+
+  await pool.query(`
+    INSERT INTO sms.menus
+      (parent_menu_id, menu_code, menu_title, route_path, icon_name, sort_order, is_visible, status)
+    VALUES
+      (NULL, 'EVENT_MANAGEMENT', 'Event Management', '/events', 'calendar', 46, TRUE, 'ACTIVE')
     ON DUPLICATE KEY UPDATE
       menu_title = VALUES(menu_title),
       route_path = VALUES(route_path),

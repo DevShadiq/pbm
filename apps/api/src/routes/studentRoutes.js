@@ -3,6 +3,7 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 import pool from "../config/db.js";
+import { assignApplicableStructuresToEnrollment } from "../utils/autoAssignFees.js";
 
 const router = express.Router();
 
@@ -524,6 +525,12 @@ router.post(
           nullIfEmpty(enrollment.end_date),
         ]
       );
+
+      await assignApplicableStructuresToEnrollment(client, {
+        studentId,
+        enrollmentId: enrollmentResult.rows[0].enrollment_id,
+        assignedBy: req.user?.user_id || null,
+      });
 
       const createdGuardians = [];
 

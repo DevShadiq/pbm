@@ -13,6 +13,7 @@ const generatedPublicData = {
   },
   institution: null,
   notices: [],
+  events: [],
   teachers: [],
   source: 'generated',
 };

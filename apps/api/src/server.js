@@ -13,9 +13,13 @@ import studentAdmissionRoutes from "./routes/studentAdmissionRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import employeeRoutes from "./routes/employeeRoutes.js";
 import noticeRoutes from "./routes/noticeRoutes.js";
+import eventRoutes from "./routes/eventRoutes.js";
+import feeRoutes from "./routes/feeRoutes.js";
 import pool from "./config/db.js";
 import { ensureSecurityCatalog } from "./utils/ensureSecurityCatalog.js";
 import { ensureEmployeeSchema } from "./utils/ensureEmployeeSchema.js";
+import { ensureEventSchema } from "./utils/ensureEventSchema.js";
+import { ensureFeeSchema } from "./utils/ensureFeeSchema.js";
 import { ensureNoticeSchema } from "./utils/ensureNoticeSchema.js";
 import { sanitizeNoticeHtml } from "./utils/noticeContent.js";
 import path from "path";
@@ -112,6 +116,7 @@ app.get("/api/public", async (req, res) => {
     const institution = result.rows[0] || null;
     let teachers = [];
     let notices = [];
+    let events = [];
     let academic = {
       levels: [],
       classes: [],
@@ -120,7 +125,7 @@ app.get("/api/public", async (req, res) => {
     };
 
     if (institution) {
-      const [teacherResult, academicLevelsResult, classLevelsResult, sectionsResult, shiftsResult, noticeResult] = await Promise.all([
+      const [teacherResult, academicLevelsResult, classLevelsResult, sectionsResult, shiftsResult, noticeResult, eventResult] = await Promise.all([
         pool.query(
         `
         SELECT
@@ -216,6 +221,17 @@ app.get("/api/public", async (req, res) => {
           `,
           [institution.institution_id]
         ),
+        pool.query(
+          `
+          SELECT event_id, COALESCE(NULLIF(title_bn, ''), title) AS title, event_date, start_time, end_time, description
+          FROM sms.events
+          WHERE status = 'PUBLISHED'
+            AND (institution_id = $1 OR institution_id IS NULL)
+          ORDER BY event_date DESC, start_time DESC
+          LIMIT 8
+          `,
+          [institution.institution_id]
+        ),
       ]);
 
       teachers = teacherResult.rows.map((teacher) => ({
@@ -241,12 +257,14 @@ app.get("/api/public", async (req, res) => {
         detail_html: sanitizeNoticeHtml(notice.detail_html) || null,
         urgent: Boolean(Number(notice.urgent)),
       }));
+      events = eventResult.rows;
     }
 
     return res.json({
       settings: buildPublicSettings(institution),
       institution,
       notices,
+      events,
       teachers,
       academic,
       source: institution ? "backend" : "generated",
@@ -258,6 +276,7 @@ app.get("/api/public", async (req, res) => {
       settings: generatedPublicSettings,
       institution: null,
       notices: [],
+      events: [],
       teachers: [],
       academic: {
         levels: [],
@@ -317,6 +336,8 @@ app.use("/api/students", studentRoutes);
 app.use("/api/student-admissions", studentAdmissionRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/notices", noticeRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/fees", feeRoutes);
 app.use("/api", masterRoutes);
 
 if (hasAdminBuild) {
@@ -340,6 +361,20 @@ if (hasWebsiteBuild) {
 const PORT = process.env.PORT || 5000;
 
 async function startServer() {
+  try {
+    await ensureFeeSchema();
+    console.log("Fee schema synchronized");
+  } catch (error) {
+    console.error("Fee schema synchronization failed:", error.message);
+  }
+
+  try {
+    await ensureEventSchema();
+    console.log("Event schema synchronized");
+  } catch (error) {
+    console.error("Event schema synchronization failed:", error.message);
+  }
+
   try {
     await ensureNoticeSchema();
     console.log("Notice schema synchronized");

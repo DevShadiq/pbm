@@ -268,7 +268,7 @@
                                 <span v-for="d in ['শ','র','শ','ব','ব','শ','শ']" :key="d" class="text-bdGreen-600 font-bold py-1">{{ d }}</span>
                                 <span v-for="day in calendarDays" :key="day" 
                                       class="py-1.5 rounded-lg transition-colors cursor-pointer"
-                                      :class="day === today ? 'bg-bdGreen-600 text-white font-bold' : day ? 'hover:bg-bdGreen-200 text-gray-700' : 'text-transparent'">
+                                      :class="day === today ? 'bg-bdGreen-600 text-white font-bold' : calendarEventDays.has(day) ? 'bg-gold-400 text-bdGreen-900 font-bold' : day ? 'hover:bg-bdGreen-200 text-gray-700' : 'text-transparent'">
                                     {{ day || '.' }}
                                 </span>
                             </div>
@@ -1035,18 +1035,24 @@ const isNoticeArchive = window.location.pathname.replace(/\/+$/, '') === '/notic
                 return matchesCategory && matchesYear && (!keyword || searchable.includes(keyword));
             });
         });
+        const events = ref([]);
+        const parseEventDate = (value) => {
+            const raw = String(value || '');
+            const date = new Date(raw.includes('T') ? raw : `${raw}T00:00:00`);
+            return Number.isNaN(date.getTime()) ? null : date;
+        };
+        const calendarEventDays = computed(() => new Set(events.value
+            .filter(event => {
+                const date = parseEventDate(event.event_date);
+                return date && date.getFullYear() === currentYear.value && date.getMonth() === currentMonth.value;
+            })
+            .map(event => parseEventDate(event.event_date)?.getDate())
+            .filter(Boolean)));
         const resetNoticeFilters = () => {
             noticeFilter.value = 'সকল';
             noticeSearch.value = '';
             noticeYear.value = '';
         };
-
-        const events = [
-            { day: '২৬', month: 'মার্চ', title: 'স্বাধীনতা দিবস উদযাপন', time: 'সকাল ৬:৩০' },
-            { day: '১৪', month: 'এপ্রি', title: 'বাংলা নববর্ষ উদযাপন', time: 'সকাল ৭:০০' },
-            { day: '১', month: 'মে', title: 'মে দিবস উদযাপন', time: 'সকাল ৮:০০' },
-            { day: '১৬', month: 'ডিসে', title: 'বিজয় দিবস উদযাপন', time: 'সকাল ৬:৩০' }
-        ];
 
         const resultStats = [
             { exam: 'দাখিল', rate: 98.5, year: '২০২৪' },
@@ -1153,6 +1159,23 @@ const isNoticeArchive = window.location.pathname.replace(/\/+$/, '') === '/notic
                 if (data.source === 'backend' && Array.isArray(data.teachers)) {
                     teachers.value = data.teachers;
                     if (!teacherFilters.value.includes(teacherFilter.value)) teacherFilter.value = 'সকল';
+                }
+                if (Array.isArray(data.events)) {
+                    events.value = data.events.map(event => {
+                        const date = parseEventDate(event.event_date);
+                        return {
+                            ...event,
+                            day: date ? date.toLocaleDateString('bn-BD', { day: 'numeric' }) : '',
+                            month: date ? monthNames[date.getMonth()].slice(0, 4) : '',
+                            title: event.title,
+                            time: event.start_time ? String(event.start_time).slice(0, 5) : 'সময় নির্ধারিত হবে',
+                        };
+                    });
+                    const firstEventDate = events.value.map(event => parseEventDate(event.event_date)).find(Boolean);
+                    if (firstEventDate) {
+                        currentMonth.value = firstEventDate.getMonth();
+                        currentYear.value = firstEventDate.getFullYear();
+                    }
                 }
                 if (data.source === 'backend' && data.academic) {
                     academicData.value = {

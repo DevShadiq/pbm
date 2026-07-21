@@ -85,6 +85,49 @@ const employeeColumns = [
   "employment_status",
 ];
 
+async function saveEmployeeAddresses(employeeId, addresses) {
+  if (!addresses || typeof addresses !== "object") return;
+
+  for (const addressType of ["PRESENT", "PERMANENT"]) {
+    const address = Array.isArray(addresses)
+      ? addresses.find((item) => item?.address_type === addressType)
+      : addresses[addressType.toLowerCase()];
+    if (!address) continue;
+
+    const values = [
+      clean(address.address_line),
+      clean(address.district),
+      clean(address.division),
+      clean(address.postal_code),
+      clean(address.country) || "Bangladesh",
+    ];
+    const hasAddressData = values.slice(0, 4).some(Boolean);
+
+    if (!hasAddressData) {
+      await pool.query(
+        `DELETE FROM sms.employee_addresses WHERE employee_id = $1 AND address_type = $2`,
+        [employeeId, addressType]
+      );
+      continue;
+    }
+
+    await pool.query(
+      `
+      INSERT INTO sms.employee_addresses
+        (employee_id, address_type, address_line, district, division, postal_code, country)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ON CONFLICT (employee_id, address_type) DO UPDATE SET
+        address_line = EXCLUDED.address_line,
+        district = EXCLUDED.district,
+        division = EXCLUDED.division,
+        postal_code = EXCLUDED.postal_code,
+        country = EXCLUDED.country
+      `,
+      [employeeId, addressType, ...values]
+    );
+  }
+}
+
 function employeeScope(req, values, alias = "e") {
   if (req.user.is_super_admin) return "";
   values.push(req.user.institution_id);
@@ -304,6 +347,7 @@ async function saveEmployee(req, res, isUpdate = false) {
   } else {
     result = await pool.query(`INSERT INTO sms.employees (${columns.join(", ")}) VALUES (${columns.map((_, index) => `$${index + 1}`).join(", ")}) RETURNING *`, values);
   }
+  await saveEmployeeAddresses(result.rows[0].employee_id, data.addresses);
   return res.status(isUpdate ? 200 : 201).json({ success: true, message: `Employee ${isUpdate ? "updated" : "created"} successfully`, data: result.rows[0] });
 }
 
