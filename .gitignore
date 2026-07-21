@@ -3,6 +3,7 @@ apps/*/node_modules/
 apps/api/dist/
 apps/*/dist/
 *.log
+*.md
 .env*
 apps/*/.env*
 !apps/admin/.env.production.example

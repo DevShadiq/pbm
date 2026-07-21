@@ -1723,7 +1723,7 @@
   </template>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { api } from "./api.js";
 import NoticeArchiveView from "./NoticeArchiveView.vue";
