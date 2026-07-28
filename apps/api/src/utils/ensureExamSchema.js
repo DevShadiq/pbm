@@ -30,6 +30,7 @@ export async function ensureExamSchema() {
   await ensureColumn("subjects", "practical_marks", "DECIMAL(8,2) NOT NULL DEFAULT 0 AFTER mcq_marks");
   await ensureColumn("subjects", "viva_marks", "DECIMAL(8,2) NOT NULL DEFAULT 0 AFTER practical_marks");
   await ensureColumn("subjects", "curriculum_type", "VARCHAR(20) NOT NULL DEFAULT 'SCHOOL' AFTER subject_type");
+  await ensureColumn("subjects", "subject_name_bn", "VARCHAR(255) NULL AFTER subject_name");
   // Keep existing subject records aligned with the exact Institution Type values.
   // School & College intentionally keeps SCHOOL records; College subjects can be added separately.
   await pool.query(`UPDATE sms.subjects s JOIN sms.institutions i ON i.institution_id=s.institution_id

@@ -22,7 +22,7 @@
         <tbody>
           <tr v-for="x in filtered" :key="x.subject_id">
             <td>{{ x.subject_code }}</td>
-            <td>{{ x.subject_name }}<small v-if="x.institution_name">{{ x.institution_name }} · {{ x.institution_type }}</small></td>
+            <td><b>{{ x.subject_name }}</b><small v-if="x.subject_name_bn" class="bangla-name">{{ x.subject_name_bn }}</small><small v-if="x.institution_name">{{ x.institution_name }} · {{ x.institution_type }}</small></td>
             <td>
               <select v-if="canChooseCurriculum" class="inline" :value="x.curriculum_type" @change="changeCurriculum(x, $event)">
                 <option v-for="option in availableCurriculums" :key="option.value" :value="option.value">{{ option.label }}</option>
@@ -44,7 +44,8 @@
         <h2>{{ id ? 'Update' : 'Add' }} Subject</h2>
         <div class="fields">
           <label>Code<input v-model.trim="f.subject_code" :readonly="Boolean(id)" required /><small v-if="id">Subject code is fixed after creation.</small></label>
-          <label>Name<input v-model.trim="f.subject_name" required /></label>
+          <label>Name (English)<input v-model.trim="f.subject_name" required /></label>
+          <label>Name (Bangla)<input v-model.trim="f.subject_name_bn" placeholder="যেমন: বাংলা ১ম পত্র" /></label>
           <label>Institution curriculum
             <select v-model="f.curriculum_type">
               <option v-for="option in availableCurriculums" :key="option.value" :value="option.value">{{ option.label }}</option>
@@ -83,7 +84,7 @@ const curriculumOptions = [
 ];
 const rows = ref([]), search = ref(''), curriculum = ref(''), modal = ref(false), id = ref(''), msg = ref(''), kind = ref('success');
 const meta = ref({ allowed_curriculum_types: ['SCHOOL'] });
-const f = reactive({ subject_code: '', subject_name: '', curriculum_type: 'SCHOOL', status: 'ACTIVE', subject_type: 'MAIN', full_marks: 100, pass_marks: 33, written_marks: 100, mcq_marks: 0, practical_marks: 0, viva_marks: 0 });
+const f = reactive({ subject_code: '', subject_name: '', subject_name_bn: '', curriculum_type: 'SCHOOL', status: 'ACTIVE', subject_type: 'MAIN', full_marks: 100, pass_marks: 33, written_marks: 100, mcq_marks: 0, practical_marks: 0, viva_marks: 0 });
 const isSuperAdmin = computed(() => Boolean(meta.value.is_super_admin));
 const availableCurriculums = computed(() => isSuperAdmin.value ? curriculumOptions : curriculumOptions.filter((option) => meta.value.allowed_curriculum_types?.includes(option.value)));
 const canChooseCurriculum = computed(() => isSuperAdmin.value || availableCurriculums.value.length > 1);
@@ -94,13 +95,13 @@ const institutionNote = computed(() => {
 });
 const total = computed(() => +f.written_marks + +f.mcq_marks + +f.practical_marks + +f.viva_marks);
 const filtered = computed(() => rows.value.filter((x) => {
-  const matchesText = `${x.subject_code} ${x.subject_name}`.toLowerCase().includes(search.value.toLowerCase());
+  const matchesText = `${x.subject_code} ${x.subject_name} ${x.subject_name_bn || ''}`.toLowerCase().includes(search.value.toLowerCase());
   return matchesText && (!curriculum.value || x.curriculum_type === curriculum.value);
 }));
 const curriculumLabel = (value) => curriculumOptions.find((option) => option.value === value)?.label || value;
 const defaultCurriculum = () => availableCurriculums.value.find((option) => option.value !== 'ALL')?.value || 'ALL';
-const resetForm = () => Object.assign(f, { subject_code: '', subject_name: '', curriculum_type: defaultCurriculum(), status: 'ACTIVE', subject_type: 'MAIN', full_marks: 100, pass_marks: 33, written_marks: 100, mcq_marks: 0, practical_marks: 0, viva_marks: 0 });
-function open(subject) { id.value = subject?.subject_id || ''; subject ? Object.assign(f, { ...subject, status: subject.status || 'ACTIVE' }) : resetForm(); modal.value = true; }
+const resetForm = () => Object.assign(f, { subject_code: '', subject_name: '', subject_name_bn: '', curriculum_type: defaultCurriculum(), status: 'ACTIVE', subject_type: 'MAIN', full_marks: 100, pass_marks: 33, written_marks: 100, mcq_marks: 0, practical_marks: 0, viva_marks: 0 });
+function open(subject) { id.value = subject?.subject_id || ''; subject ? Object.assign(f, { ...subject, subject_name_bn: subject.subject_name_bn || '', status: subject.status || 'ACTIVE' }) : resetForm(); modal.value = true; }
 async function load() {
   try {
     const response = await api.get('/exams/subjects', { params: { curriculum_type: curriculum.value } });
@@ -114,6 +115,7 @@ async function save() {
     const response = id.value ? await api.put(`/exams/subjects/${id.value}`, f) : await api.post('/exams/subjects', f);
     const subjectId = id.value || response.data?.data?.subject_id;
     await api.put(`/exams/subjects/${subjectId}/status`, { status: f.status });
+    await api.put(`/exams/subjects/${subjectId}/bangla-name`, { subject_name_bn: f.subject_name_bn });
     modal.value = false; msg.value = 'Subject saved.'; kind.value = 'success'; await load();
   } catch (error) { msg.value = error.response?.data?.message || 'Save failed.'; kind.value = 'error'; }
 }
@@ -130,5 +132,5 @@ onMounted(load);
 </script>
 
 <style scoped>
-.page{display:grid;gap:16px;padding:20px}.page header,.page article{padding:18px;border:1px solid #e2e8f0;border-radius:14px;background:#fff}.page header{display:flex;justify-content:space-between;align-items:center;gap:16px}h1,h2{margin:0 0 6px}p{margin:0;color:#475569}button{padding:8px 11px;border:0;border-radius:7px;background:#4338ca;color:#fff;font-weight:800;cursor:pointer}.secondary{background:#64748b}.mini{padding:6px;margin:2px}.danger{background:#dc2626}.filters{display:flex;gap:10px;align-items:center}.filters input,.filters select,.inline{padding:9px;border:1px solid #cbd5e1;border-radius:7px}.filters input{min-width:280px}.filters span{font-size:13px;color:#64748b}.table-wrap{overflow:auto;padding:0!important;border-color:#dbe4f0!important}table{width:100%;border-collapse:separate;border-spacing:0}th,td{padding:11px 12px;border-bottom:1px solid #e7edf5;text-align:left;font-size:13px;white-space:nowrap}th{background:#eef4ff;color:#334155;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}tbody tr:nth-child(odd){background:#fff}tbody tr:nth-child(even){background:#f8fbff}tbody tr:hover{background:#eaf2ff;transition:background .15s ease}tbody tr:last-child td{border-bottom:0}small{display:block;color:#64748b}.status{display:inline-flex;padding:3px 7px;border-radius:999px;font-size:10px;font-weight:800}.status.active{background:#dcfce7;color:#166534}.status.inactive{background:#fee2e2;color:#b91c1c}.backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:#0f172a88}.modal{width:min(660px,calc(100% - 32px));padding:22px;border-radius:16px;background:#fff}.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.fields label{display:grid;gap:4px;font-size:12px;font-weight:800}.fields input,.fields select{padding:8px;border:1px solid #cbd5e1;border-radius:7px}.fields input[readonly]{background:#f1f5f9;color:#64748b;cursor:not-allowed}.bad{color:#dc2626}.success,.error{padding:10px;border-radius:8px}.success{background:#dcfce7;color:#166534}.error{background:#fee2e2;color:#b91c1c}@media(max-width:750px){.page header,.filters{flex-direction:column;align-items:stretch}.fields{grid-template-columns:1fr}.filters input{min-width:0}}
+.page{display:grid;gap:16px;padding:20px}.page header,.page article{padding:18px;border:1px solid #e2e8f0;border-radius:14px;background:#fff}.page header{display:flex;justify-content:space-between;align-items:center;gap:16px}h1,h2{margin:0 0 6px}p{margin:0;color:#475569}button{padding:8px 11px;border:0;border-radius:7px;background:#4338ca;color:#fff;font-weight:800;cursor:pointer}.secondary{background:#64748b}.mini{padding:6px;margin:2px}.danger{background:#dc2626}.filters{display:flex;gap:10px;align-items:center}.filters input,.filters select,.inline{padding:9px;border:1px solid #cbd5e1;border-radius:7px}.filters input{min-width:280px}.filters span{font-size:13px;color:#64748b}.table-wrap{overflow:auto;padding:0!important;border-color:#dbe4f0!important}table{width:100%;border-collapse:separate;border-spacing:0}th,td{padding:11px 12px;border-bottom:1px solid #e7edf5;text-align:left;font-size:13px;white-space:nowrap}th{background:#eef4ff;color:#334155;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}tbody tr:nth-child(odd){background:#fff}tbody tr:nth-child(even){background:#f8fbff}tbody tr:hover{background:#eaf2ff;transition:background .15s ease}tbody tr:last-child td{border-bottom:0}small{display:block;color:#64748b}.bangla-name{margin-top:2px;color:#1e40af;font-weight:650;font-size:13px}.status{display:inline-flex;padding:3px 7px;border-radius:999px;font-size:10px;font-weight:800}.status.active{background:#dcfce7;color:#166534}.status.inactive{background:#fee2e2;color:#b91c1c}.backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:#0f172a88}.modal{width:min(660px,calc(100% - 32px));padding:22px;border-radius:16px;background:#fff}.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.fields label{display:grid;gap:4px;font-size:12px;font-weight:800}.fields input,.fields select{padding:8px;border:1px solid #cbd5e1;border-radius:7px}.fields input[readonly]{background:#f1f5f9;color:#64748b;cursor:not-allowed}.bad{color:#dc2626}.success,.error{padding:10px;border-radius:8px}.success{background:#dcfce7;color:#166534}.error{background:#fee2e2;color:#b91c1c}@media(max-width:750px){.page header,.filters{flex-direction:column;align-items:stretch}.fields{grid-template-columns:1fr}.filters input{min-width:0}}
 </style>

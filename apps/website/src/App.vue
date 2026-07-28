@@ -1767,16 +1767,16 @@ const academicTabs = computed(() => {
   const levels = academicData.value.levels || [];
   return levels.length
     ? [
-        {
-          id: "all",
-          label: "সকল শ্রেণি",
-          icon: "fas fa-school",
-        },
         ...levels.map((level) => ({
           id: String(level.level_id),
           label: level.level_name_bn || level.level_name,
           icon: "fas fa-layer-group",
         })),
+        {
+          id: "all",
+          label: "সকল শ্রেণি",
+          icon: "fas fa-school",
+        },
       ]
     : [
         {
@@ -2317,11 +2317,15 @@ const loadPublicData = async () => {
           : [],
         shifts: Array.isArray(data.academic.shifts) ? data.academic.shifts : [],
       };
-      if (
-        !academicTabs.value.some((tab) => tab.id === activeAcademicTab.value)
-      ) {
-        activeAcademicTab.value = "all";
-      }
+      const primaryLevel = academicData.value.levels.find((level) =>
+        [level.level_name_bn, level.level_name].some(
+          (name) =>
+            ["প্রাথমিক", "primary"].includes(String(name || "").trim().toLowerCase()),
+        ),
+      );
+      activeAcademicTab.value = primaryLevel
+        ? String(primaryLevel.level_id)
+        : "all";
     }
   } catch (error) {
     console.warn(
