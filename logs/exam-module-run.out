@@ -1,0 +1,15 @@
+
+> pbm-school-management@1.0.0 start
+> npm run start --workspace @pbm/api
+
+
+> @pbm/api@1.0.0 start
+> node src/server.js
+
+Exam schema synchronized
+Fee schema synchronized
+Event schema synchronized
+Notice schema synchronized
+Employee schema synchronized
+Security catalog synchronized
+Server running on http://0.0.0.0:5000

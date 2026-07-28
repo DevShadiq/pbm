@@ -15,11 +15,13 @@ import employeeRoutes from "./routes/employeeRoutes.js";
 import noticeRoutes from "./routes/noticeRoutes.js";
 import eventRoutes from "./routes/eventRoutes.js";
 import feeRoutes from "./routes/feeRoutes.js";
+import examRoutes from "./routes/examRoutes.js";
 import pool from "./config/db.js";
 import { ensureSecurityCatalog } from "./utils/ensureSecurityCatalog.js";
 import { ensureEmployeeSchema } from "./utils/ensureEmployeeSchema.js";
 import { ensureEventSchema } from "./utils/ensureEventSchema.js";
 import { ensureFeeSchema } from "./utils/ensureFeeSchema.js";
+import { ensureExamSchema } from "./utils/ensureExamSchema.js";
 import { ensureNoticeSchema } from "./utils/ensureNoticeSchema.js";
 import { sanitizeNoticeHtml } from "./utils/noticeContent.js";
 import path from "path";
@@ -338,6 +340,7 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/notices", noticeRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/fees", feeRoutes);
+app.use("/api/exams", examRoutes);
 app.use("/api", masterRoutes);
 
 if (hasAdminBuild) {
@@ -361,6 +364,7 @@ if (hasWebsiteBuild) {
 const PORT = process.env.PORT || 5000;
 
 async function startServer() {
+  try { await ensureExamSchema(); console.log("Exam schema synchronized"); } catch (error) { console.error("Exam schema synchronization failed:", error.message); }
   try {
     await ensureFeeSchema();
     console.log("Fee schema synchronized");

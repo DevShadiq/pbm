@@ -1,0 +1,7 @@
+npm error Lifecycle script `start` failed with error:
+npm error code 4294967295
+npm error path D:\pbm\apps\api
+npm error workspace @pbm/api@1.0.0
+npm error location D:\pbm\apps\api
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node src/server.js

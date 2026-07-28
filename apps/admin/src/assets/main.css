@@ -19,3 +19,14 @@ button {
 button {
   cursor: pointer;
 }
+/* Keep controls compact in the Exam Setup forms even when a subject row has more fields. */
+section.page form {
+  align-items: start;
+}
+
+section.page form button {
+  align-self: start;
+  min-height: 38px;
+  height: 38px;
+  line-height: 1;
+}

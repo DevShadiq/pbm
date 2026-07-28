@@ -1455,7 +1455,7 @@
         class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay"
         @click.self="showAdmissionModal = false"
       >
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showAdmissionModal = false"></div>
         <div
           class="relative bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto modal-content"
         >
@@ -1614,9 +1614,9 @@
       <div
         v-if="showNoticeModal"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay"
-        @click="showNoticeModal = false"
+        @click.self="showNoticeModal = false"
       >
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showNoticeModal = false"></div>
         <div
           class="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto modal-content"
           @click.stop
@@ -1682,7 +1682,7 @@
         class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay"
         @click.self="showGalleryModal = false"
       >
-        <div class="absolute inset-0 bg-black/90"></div>
+        <div class="absolute inset-0 bg-black/90" @click="showGalleryModal = false"></div>
         <button
           @click="prevGalleryImg"
           class="absolute left-4 z-10 w-12 h-12 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors"

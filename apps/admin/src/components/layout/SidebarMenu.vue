@@ -59,7 +59,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
+import { useRoute } from "vue-router";
 import api from "../../services/api";
 import MenuIcon from "../common/MenuIcon.vue";
 
@@ -74,6 +75,7 @@ const props = defineProps({
   },
 });
 
+const route = useRoute();
 const menus = ref([]);
 const opened = ref({});
 
@@ -108,15 +110,11 @@ const fallbackMenus = [
 ];
 
 const openParentMenus = () => {
-  const nextOpened = {};
-
-  menus.value.forEach((menu) => {
-    if (menu.children?.length) {
-      nextOpened[menu.menu_code] = true;
-    }
-  });
-
-  opened.value = nextOpened;
+  // Restore only the parent that owns the active page after login/reload.
+  const activeParent = menus.value.find((menu) =>
+    menu.children?.some((child) => child.route_path === route.path)
+  );
+  opened.value = activeParent ? { [activeParent.menu_code]: true } : {};
 };
 
 const setMenus = (nextMenus) => {
@@ -141,12 +139,19 @@ const loadMenus = async () => {
 
 const toggle = (code) => {
   if (props.collapsed) return;
-  opened.value[code] = !opened.value[code];
+  const willOpen = !opened.value[code];
+  // Accordion behavior: only one parent menu can stay open at a time.
+  opened.value = willOpen ? { [code]: true } : {};
 };
 
 onMounted(() => {
   loadMenus();
 });
+
+watch(
+  () => route.path,
+  () => openParentMenus()
+);
 </script>
 
 <style scoped>

@@ -1,0 +1,823 @@
+(node:12420) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[2m5:11:47 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: <tr> cannot be child of <table>, according to HTML specifications. This can cause hydration errors or potentially disrupt future functionality.
+1  |  <template><section class="page"><header><div><small>ACADEMIC CURRICULUM</small><h1>Subject Entry</h1><p>মূল, ঐচ্ছিক এবং চতুর্থ বিষয়; Written, MCQ, Practical ও Viva marks setup করুন।</p></div><RouterLink to="/exams/class-subjects">Class-wise Subjects</RouterLink></header><p v-if="msg" :class="kind">{{msg}}</p><div class="grid"><form @submit.prevent="save"><h2>নতুন বিষয়</h2><label>Subject Code<input v-model.trim="f.subject_code" required placeholder="BAN-101"/></label><label>Subject Name<input v-model.trim="f.subject_name" required placeholder="Bangla"/></label><label>Subject Type<select v-model="f.subject_type"><option value="MAIN">Main / Compulsory</option><option value="OPTIONAL">Optional</option><option value="FOURTH_SUBJECT">Fourth Subject</option></select></label><label>Full Marks<input v-model.number="f.full_marks" type="number" min="1" required/></label><label>Pass Marks<input v-model.number="f.pass_marks" type="number" min="0" required/></label><label>Written<input v-model.number="f.written_marks" type="number" min="0" required/></label><label>MCQ<input v-model.number="f.mcq_marks" type="number" min="0" required/></label><label>Practical<input v-model.number="f.practical_marks" type="number" min="0" required/></label><label>Viva<input v-model.number="f.viva_marks" type="number" min="0" required/></label><p class="total">Component Total: <b :class="{bad:total!==Number(f.full_marks)}">{{total}} / {{f.full_marks}}</b></p><button :disabled="total!==Number(f.full_marks)">Save Subject</button></form><article><h2>Curriculum checklist</h2><ul><li>Academic Level, Class, Group, Medium</li><li>Subject master and class-wise assignment</li><li>Compulsory / Optional / Fourth Subject rules</li><li>Full/pass marks and assessment components</li><li>Credit, period/week and teacher assignment</li><li>Exam routine, GPA rule and promotion rule</li></ul></article></div><article><h2>Existing subjects</h2><table><tr><th>Code</th><th>Subject</th><th>Type</th><th>Marks Distribution</th></tr><tr v-for="x in rows"><td>{{x.subject_code}}</td><td>{{x.subject_name}}</td><td>{{x.subject_type}}</td><td>W {{x.written_marks}} · MCQ {{x.mcq_marks}} · P {{x.practical_marks}} · V {{x.viva_marks}}</td></tr></table></article></section></template><script setup>import{computed,onMounted,reactive,ref}from'vue';import{RouterLink}from'vue-router';import api from'../../services/api';const rows=ref([]),msg=ref(''),kind=ref('success'),f=reactive({subject_code:'',subject_name:'',subject_type:'MAIN',full_marks:100,pass_marks:33,written_marks:100,mcq_marks:0,practical_marks:0,viva_marks:0});const total=computed(()=>Number(f.written_marks||0)+Number(f.mcq_marks||0)+Number(f.practical_marks||0)+Number(f.viva_marks||0));async function load(){rows.value=(await api.get('/exams/subjects')).data.data}async function save(){try{await api.post('/exams/subjects',f);msg.value='Subject saved successfully.';kind.value='success';Object.assign(f,{subject_code:'',subject_name:'',subject_type:'MAIN',full_marks:100,pass_marks:33,written_marks:100,mcq_marks:0,practical_marks:0,viva_marks:0});load()}catch(e){msg.value=e.response?.data?.message||'Save failed.';kind.value='error'}}onMounted(load)</script><style scoped>.page{display:grid;gap:18px}header,form,article{padding:22px;border:1px solid #e2e8f0;border-radius:18px;background:#fff}header{display:flex;justify-content:space-between;background:linear-gradient(135deg,#eff6ff,#fff)}small{color:#4f46e5;font-weight:900}h1{margin:6px 0;color:#172554}h2{margin-top:0}p{color:#64748b}a{color:#4338ca;font-weight:800;text-decoration:none}.grid{display:grid;grid-template-columns:2fr 1fr;gap:18px}form{display:grid;grid-template-columns:1fr 1fr;gap:12px}form h2,button,.total{grid-column:1/-1}label{display:grid;gap:5px;font-size:13px;font-weight:800}input,select{padding:9px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}button{width:max-content;background:#4338ca;color:white;border:0;padding:10px 14px;border-radius:8px;font-weight:800}.bad{color:#dc2626}.success{padding:10px;background:#dcfce7;color:#166534}.error{padding:10px;background:#fee2e2;color:#b91c1c}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}@media(max-width:800px){.grid,form{grid-template-columns:1fr}header{flex-direction:column}}</style>
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2  |  [39m
+  Plugin: [35mvite:vue[39m
+  File: [36mD:/pbm/apps/admin/src/views/exam/SubjectEntryView.vue[39m
+[2m5:11:55 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: <tr> cannot be child of <table>, according to HTML specifications. This can cause hydration errors or potentially disrupt future functionality.
+1  |  <template><section class="page"><header><div><small>EXAM & RESULTS</small><h1>Exam Routine Generator</h1><p>কোন পরীক্ষা কোন তারিখে হবে—সেট করুন, অটো রুটিন তৈরি করুন, তারপর প্রয়োজন হলে পৃথকভাবে পরিবর্তন করুন।</p></div><RouterLink to="/exams/setup">Exam setup</RouterLink></header><p v-if="msg" :class="kind">{{msg}}</p><div class="grid"><form @submit.prevent="generate"><h2>Auto routine settings</h2><label>Exam<select v-model="examId" required @change="loadSubjects"><option value="">Select exam</option><option v-for="x in exams" :value="x.exam_id">{{x.exam_name}} — {{x.class_name||'All classes'}}</option></select></label><label>Start date<input v-model="f.start_date" type="date" required/></label><label>Start time<input v-model="f.start_time" type="time" required/></label><label>Exam duration (minutes)<input v-model.number="f.duration_minutes" type="number" min="15" required/></label><label class="check"><input v-model="f.skip_friday" type="checkbox"/> শুক্রবার বাদ দিন</label><button :disabled="!examId">Generate routine</button></form><article><h2>নিয়ম</h2><ul><li>সাবজেক্টের ক্রম অনুযায়ী প্রতিদিন একটি করে পরীক্ষা সেট হবে।</li><li>Friday বাদ দেওয়ার অপশন চালু থাকলে সেদিন পরীক্ষা হবে না।</li><li>সময়কাল থেকে End Time স্বয়ংক্রিয়ভাবে তৈরি হবে।</li><li>Generate করার পরে Exam Setup থেকে date/time/room পরিবর্তন করা যাবে।</li></ul></article></div><article><h2>Generated routine</h2><table><tr><th>#</th><th>Subject</th><th>Date</th><th>Time</th><th>Room</th></tr><tr v-for="(x,i) in subjects" :key="x.exam_subject_id"><td>{{i+1}}</td><td>{{x.subject_code}} — {{x.subject_name}}</td><td>{{date(x.exam_date)}}</td><td>{{x.start_time||'—'}} – {{x.end_time||'—'}}</td><td>{{x.room_no||'—'}}</td></tr><tr v-if="examId&&!subjects.length"><td colspan="5">এই পরীক্ষায় এখনো কোনো subject যোগ করা হয়নি।</td></tr></table></article></section></template><script setup>import{onMounted,reactive,ref}from'vue';import{RouterLink}from'vue-router';import api from'../../services/api';const exams=ref([]),subjects=ref([]),examId=ref(''),msg=ref(''),kind=ref('success'),f=reactive({start_date:new Date().toISOString().slice(0,10),start_time:'10:00',duration_minutes:180,skip_friday:true});const date=v=>v?new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${String(v).slice(0,10)}T00:00:00`)):'—';async function loadSubjects(){if(examId.value)subjects.value=(await api.get(`/exams/exams/${examId.value}/subjects`)).data.data}async function generate(){try{const r=await api.post(`/exams/exams/${examId.value}/routine/generate`,f);msg.value=`${r.data.data.scheduled}টি বিষয়ের রুটিন তৈরি হয়েছে।`;kind.value='success';loadSubjects()}catch(e){msg.value=e.response?.data?.message||'Routine তৈরি করা যায়নি।';kind.value='error'}}onMounted(async()=>{try{exams.value=(await api.get('/exams/exams')).data.data}catch(e){msg.value='Exam list load হয়নি।';kind.value='error'}})</script><style scoped>.page{display:grid;gap:18px}header,form,article{padding:22px;border:1px solid #e2e8f0;border-radius:18px;background:#fff}header{display:flex;justify-content:space-between;background:linear-gradient(135deg,#eef2ff,#fff)}small{font-weight:900;color:#4f46e5;letter-spacing:.1em}h1{margin:6px 0;color:#172554}h2{margin-top:0}p,li{color:#64748b;line-height:1.5}a{color:#4338ca;font-weight:800;text-decoration:none}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}form{display:grid;grid-template-columns:1fr 1fr;gap:12px}form h2,button{grid-column:1/-1}label{display:grid;gap:5px;font-size:13px;font-weight:800}.check{display:flex;align-items:center;gap:8px;padding-top:18px}input,select{padding:9px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}button{width:max-content;padding:10px 14px;background:#4338ca;color:#fff;border:0;border-radius:8px;font-weight:800}.success,.error{padding:10px;font-weight:800}.success{background:#dcfce7;color:#166534}.error{background:#fee2e2;color:#b91c1c}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}th{font-size:11px;color:#64748b;text-transform:uppercase}@media(max-width:800px){.grid,form{grid-template-columns:1fr}header{flex-direction:column}}</style>
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2  |  [39m
+  Plugin: [35mvite:vue[39m
+  File: [36mD:/pbm/apps/admin/src/views/exam/RoutineGeneratorView.vue[39m
+[2m5:13:09 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:09 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:09 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:13:13 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:13 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:13 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:13:20 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:20 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:20 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:13:20 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:20 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:20 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:13:21 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:21 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:21 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:13:21 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:21 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:21 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:13:28 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:28 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:28 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:13:40 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:40 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:40 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:13:44 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:44 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:44 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:13:55 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:55 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:13:55 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:14:09 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:14:09 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:14:09 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > updateComponent ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6081:17
+ > processComponent ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6015:6
+ > patch ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:5503:10
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6232:8
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+
+[2m5:15:04 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:15:04 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:15:04 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:15:10 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:15:10 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:15:10 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:15:11 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:15:11 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:15:11 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:15:30 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:15:30 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:15:30 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:15:32 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:15:32 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:15:32 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:15:34 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:15:34 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <ExamManagementView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m5:15:34 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mTypeError[22m: Cannot read properties of undefined (reading 'length')
+[39m > Proxy._sfc_render ../admin/src/views/exam/ExamManagementView.vue:8:3412
+    6  |      <template v-else>
+    7  |        <div v-if="section==='dashboard'" class="dashboard"><div class="stats"><article><span>Exams</span><b>{{ dashboa...
+    8  |  ..._time||''}} {{x.room_no||''}}</small></p><p v-if="!subjects.length">No subjects yet.</p></div></div></template>
+       |                                                                 ^
+    9  |        <template v-if="section==='routine'"><div class="card"><h2>Routine / seating</h2><p>Select an exam to view its ...
+    10 |        <template v-if="section==='candidates'"><div class="card"><h2>Candidates & admit cards</h2><select v-model="sel...
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m5:18:16 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /@fs/D:/pbm/apps/admin/src/views/exam/ExamManagementView.vue. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m6:53:40 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /@fs/D:/pbm/apps/admin/src/views/exam/ExamManagementView.vue. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m6:55:28 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /@fs/D:/pbm/apps/admin/src/views/exam/ExamManagementView.vue. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m6:59:11 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m6:59:11 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m6:59:11 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mRangeError[22m: Invalid time value
+[39m > Proxy.date ../admin/src/views/exam/RoutineGeneratorView.vue:1:2271
+    1  |  ...rmat('en-GB',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${String(v).slice(0,10)}T00:00:00`)):'...
+       |                                                                 ^
+    2  |  
+ > ../admin/src/views/exam/RoutineGeneratorView.vue:1:1596
+ > renderList ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:3195:15
+ > Proxy._sfc_render ../admin/src/views/exam/RoutineGeneratorView.vue:1:1704
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m7:02:20 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:02:20 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:02:20 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mRangeError[22m: Invalid time value
+[39m > Proxy.date ../admin/src/views/exam/RoutineGeneratorView.vue:1:2271
+    1  |  ...rmat('en-GB',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${String(v).slice(0,10)}T00:00:00`)):'...
+       |                                                                 ^
+    2  |  
+ > ../admin/src/views/exam/RoutineGeneratorView.vue:1:1596
+ > renderList ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:3195:15
+ > Proxy._sfc_render ../admin/src/views/exam/RoutineGeneratorView.vue:1:1704
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m7:02:22 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:02:22 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:02:22 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mRangeError[22m: Invalid time value
+[39m > Proxy.date ../admin/src/views/exam/RoutineGeneratorView.vue:1:2271
+    1  |  ...rmat('en-GB',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${String(v).slice(0,10)}T00:00:00`)):'...
+       |                                                                 ^
+    2  |  
+ > ../admin/src/views/exam/RoutineGeneratorView.vue:1:1596
+ > renderList ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:3195:15
+ > Proxy._sfc_render ../admin/src/views/exam/RoutineGeneratorView.vue:1:1704
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m7:02:22 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:02:22 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:02:22 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mRangeError[22m: Invalid time value
+[39m > Proxy.date ../admin/src/views/exam/RoutineGeneratorView.vue:1:2271
+    1  |  ...rmat('en-GB',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${String(v).slice(0,10)}T00:00:00`)):'...
+       |                                                                 ^
+    2  |  
+ > ../admin/src/views/exam/RoutineGeneratorView.vue:1:1596
+ > renderList ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:3195:15
+ > Proxy._sfc_render ../admin/src/views/exam/RoutineGeneratorView.vue:1:1704
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m7:03:32 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:03:32 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:03:32 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mRangeError[22m: Invalid time value
+[39m > Proxy.date ../admin/src/views/exam/RoutineGeneratorView.vue:1:2271
+    1  |  ...rmat('en-GB',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${String(v).slice(0,10)}T00:00:00`)):'...
+       |                                                                 ^
+    2  |  
+ > ../admin/src/views/exam/RoutineGeneratorView.vue:1:1596
+ > renderList ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:3195:15
+ > Proxy._sfc_render ../admin/src/views/exam/RoutineGeneratorView.vue:1:1704
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m7:03:38 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:03:38 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:03:38 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mRangeError[22m: Invalid time value
+[39m > Proxy.date ../admin/src/views/exam/RoutineGeneratorView.vue:1:2271
+    1  |  ...rmat('en-GB',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${String(v).slice(0,10)}T00:00:00`)):'...
+       |                                                                 ^
+    2  |  
+ > ../admin/src/views/exam/RoutineGeneratorView.vue:1:1596
+ > renderList ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:3195:15
+ > Proxy._sfc_render ../admin/src/views/exam/RoutineGeneratorView.vue:1:1704
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m7:04:07 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:04:07 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:04:07 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mRangeError[22m: Invalid time value
+[39m > Proxy.date ../admin/src/views/exam/RoutineGeneratorView.vue:1:2271
+    1  |  ...rmat('en-GB',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${String(v).slice(0,10)}T00:00:00`)):'...
+       |                                                                 ^
+    2  |  
+ > ../admin/src/views/exam/RoutineGeneratorView.vue:1:1596
+ > renderList ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:3195:15
+ > Proxy._sfc_render ../admin/src/views/exam/RoutineGeneratorView.vue:1:1704
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m7:04:08 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:04:08 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:04:08 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mRangeError[22m: Invalid time value
+[39m > Proxy.date ../admin/src/views/exam/RoutineGeneratorView.vue:1:2271
+    1  |  ...rmat('en-GB',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${String(v).slice(0,10)}T00:00:00`)):'...
+       |                                                                 ^
+    2  |  
+ > ../admin/src/views/exam/RoutineGeneratorView.vue:1:1596
+ > renderList ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:3195:15
+ > Proxy._sfc_render ../admin/src/views/exam/RoutineGeneratorView.vue:1:1704
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m7:04:08 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:04:08 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:04:08 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mRangeError[22m: Invalid time value
+[39m > Proxy.date ../admin/src/views/exam/RoutineGeneratorView.vue:1:2271
+    1  |  ...rmat('en-GB',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${String(v).slice(0,10)}T00:00:00`)):'...
+       |                                                                 ^
+    2  |  
+ > ../admin/src/views/exam/RoutineGeneratorView.vue:1:1596
+ > renderList ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:3195:15
+ > Proxy._sfc_render ../admin/src/views/exam/RoutineGeneratorView.vue:1:1704
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m7:06:10 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /@fs/D:/pbm/apps/admin/src/views/exam/SubjectEntryView.vue. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m7:13:30 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: <tr> cannot be child of <table>, according to HTML specifications. This can cause hydration errors or potentially disrupt future functionality.
+1  |  <template><section class="page"><header><div><h1>Class-wise Subjects</h1><p>প্রতিটি class-এর অনুমোদিত subject তালিকা।</p></div><button :disabled="!classId" @click="modal=true">+ Assign Subject</button></header><p v-if="msg" :class="kind">{{msg}}</p><article class="filter"><label>Class<select v-model="classId" @change="load"><option value="">Select class</option><option v-for="x in classes" :value="x.class_id">{{x.class_name}}</option></select></label></article><article><table><tr><th>Order</th><th>Subject</th><th>Type</th><th>Action</th></tr><tr v-for="x in rows"><td>{{x.sort_order}}</td><td>{{x.subject_code}} — {{x.subject_name}}</td><td>{{Number(x.is_mandatory)?'Mandatory':'Optional'}}</td><td><button class="remove" @click="remove(x)">Remove</button></td></tr><tr v-if="classId&&!rows.length"><td colspan="4">No subject assigned.</td></tr></table></article><div v-if="modal" class="backdrop" @click.self="modal=false"><form class="modal" @submit.prevent="assign"><h2>Assign Subject</h2><label>Subject<select v-model="f.subject_id" required><option value="">Select subject</option><option v-for="x in available" :value="x.subject_id">{{x.subject_code}} — {{x.subject_name}}</option></select></label><label>Order<input v-model.number="f.sort_order" type="number" min="0"/></label><label><input v-model="f.is_mandatory" type="checkbox"/> Mandatory</label><button>Save Assignment</button></form></div></section></template><script setup>import{computed,onMounted,reactive,ref}from'vue';import api from'../../services/api';const classes=ref([]),subjects=ref([]),rows=ref([]),classId=ref(''),modal=ref(false),msg=ref(''),kind=ref('success'),f=reactive({subject_id:'',sort_order:0,is_mandatory:true});const available=computed(()=>subjects.value.filter(x=>!rows.value.some(y=>y.subject_id==x.subject_id)));async function load(){if(classId.value)rows.value=(await api.get(`/exams/classes/${classId.value}/subjects`)).data.data}async function assign(){try{await api.post(`/exams/classes/${classId.value}/subjects`,f);modal.value=false;Object.assign(f,{subject_id:'',sort_order:0,is_mandatory:true});load()}catch(e){msg.value=e.response?.data?.message||'Save failed.';kind.value='error'}}async function remove(x){if(confirm(`Remove ${x.subject_name}?`)){await api.delete(`/exams/class-subjects/${x.class_subject_id}`);load()}}onMounted(async()=>{const d=(await api.get('/exams/lookups')).data.data;classes.value=d.classes;subjects.value=d.subjects})</script><style scoped>.page{display:grid;gap:16px;padding:20px}header,article{padding:18px;border:1px solid #e2e8f0;border-radius:14px;background:#fff}header{display:flex;justify-content:space-between;align-items:center}h1,h2{margin-top:0}button{padding:9px 12px;border:0;border-radius:8px;background:#4338ca;color:#fff;font:inherit;font-weight:800}.remove{background:#dc2626}.filter label,.modal label{display:grid;gap:5px;font-size:12px;font-weight:800;max-width:330px}.filter select,.modal select,.modal input{padding:9px;border:1px solid #cbd5e1;border-radius:7px;font:inherit}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}.backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:#0f172a88}.modal{width:min(450px,calc(100% - 36px));display:grid;gap:12px;padding:22px;border-radius:16px;background:#fff}.success,.error{padding:10px}.error{background:#fee2e2;color:#b91c1c}@media(max-width:700px){header{align-items:flex-start;flex-direction:column}}</style>
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2  |  [39m
+  Plugin: [35mvite:vue[39m
+  File: [36mD:/pbm/apps/admin/src/views/exam/ClassSubjectSetupView.vue[39m
+[2m7:14:31 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of render function 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:14:31 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of component update 
+  at <RoutineGeneratorView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m7:14:31 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mRangeError[22m: Invalid time value
+[39m > Proxy.date ../admin/src/views/exam/RoutineGeneratorView.vue:1:2271
+    1  |  ...rmat('en-GB',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${String(v).slice(0,10)}T00:00:00`)):'...
+       |                                                                 ^
+    2  |  
+ > ../admin/src/views/exam/RoutineGeneratorView.vue:1:1596
+ > renderList ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:3195:15
+ > Proxy._sfc_render ../admin/src/views/exam/RoutineGeneratorView.vue:1:1704
+ > renderComponentRoot ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:4580:15
+ > ReactiveEffect.componentUpdateFn [as fn] ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:6223:25
+ > ReactiveEffect.run ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:260:18
+ > ReactiveEffect.runIfDirty ../../node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js:298:11
+ > callWithErrorHandling ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:199:32
+ > flushJobs ../../node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js:408:8
+
+[2m7:33:18 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: <tr> cannot be child of <table>, according to HTML specifications. This can cause hydration errors or potentially disrupt future functionality.
+1  |  <template><section class="page"><header><div><small>EXAM & RESULTS</small><h1>Routine & Reschedule</h1><p>রুটিন তৈরি, পরিবর্তন ও পরীক্ষা পিছিয়ে দিন।</p></div><div><button @click="openGenerate" :disabled="!examId">Generate Routine</button><button class="secondary" @click="reschedule=true" :disabled="!examId">Reschedule</button></div></header><p v-if="msg" :class="kind">{{msg}}</p><article class="filter"><label>Exam<select v-model="examId" @change="load"><option value="">Select exam</option><option v-for="x in exams" :value="x.exam_id">{{x.exam_name}} — {{x.class_name||'All'}}</option></select></label></article><article><table><tr><th>#</th><th>Subject</th><th>Date</th><th>Time</th><th>Room</th><th></th></tr><tr v-for="(x,i) in subjects"><td>{{i+1}}</td><td>{{x.subject_code}} — {{x.subject_name}}</td><td>{{x.exam_date||'—'}}</td><td>{{x.start_time||'—'}} – {{x.end_time||'—'}}</td><td>{{x.room_no||'—'}}</td><td><button class="mini" @click="edit(x)">Edit</button></td></tr></table></article><div v-if="generate" class="backdrop" @click.self="generate=false"><form class="modal" @submit.prevent="runGenerate"><h2>Generate Routine</h2><label>Start Date<input v-model="g.start_date" type="date" required/></label><label>Start Time<input v-model="g.start_time" type="time" required/></label><label>Duration (minutes)<input v-model.number="g.duration_minutes" type="number" min="15"/></label><label><input v-model="g.skip_friday" type="checkbox"/> শুক্রবার বাদ দিন</label><button>Generate</button></form></div><div v-if="reschedule" class="backdrop" @click.self="reschedule=false"><form class="modal" @submit.prevent="runReschedule"><h2>Reschedule Routine</h2><p>নির্বাচিত তারিখ ও পরের সব পরীক্ষা একসঙ্গে সরবে।</p><label>From Date<input v-model="r.from_date" type="date" required/></label><label>Shift Days<input v-model.number="r.shift_days" type="number" required placeholder="যেমন: 2"/></label><button>Reschedule</button></form></div><div v-if="editing" class="backdrop" @click.self="editing=null"><form class="modal" @submit.prevent="saveEdit"><h2>Edit Exam Schedule</h2><label>Date<input v-model="e.exam_date" type="date"/></label><label>Start Time<input v-model="e.start_time" type="time"/></label><label>End Time<input v-model="e.end_time" type="time"/></label><label>Room<input v-model="e.room_no"/></label><button>Save Changes</button></form></div></section></template><script setup>import{onMounted,reactive,ref}from'vue';import api from'../../services/api';const exams=ref([]),subjects=ref([]),examId=ref(''),generate=ref(false),reschedule=ref(false),editing=ref(null),msg=ref(''),kind=ref('success'),g=reactive({start_date:new Date().toISOString().slice(0,10),start_time:'10:00',duration_minutes:180,skip_friday:true}),r=reactive({from_date:'',shift_days:1}),e=reactive({exam_date:'',start_time:'',end_time:'',room_no:''});const note=(x,k='success')=>{msg.value=x;kind.value=k};async function load(){if(examId.value)subjects.value=(await api.get(`/exams/exams/${examId.value}/subjects`)).data.data}function openGenerate(){generate.value=true}async function runGenerate(){try{await api.post(`/exams/exams/${examId.value}/routine/generate`,g);generate.value=false;note('Routine generated.');load()}catch(x){note(x.response?.data?.message||'Generate failed.','error')}}async function runReschedule(){try{const x=await api.post(`/exams/exams/${examId.value}/routine/reschedule`,r);reschedule.value=false;note(`${x.data.data.rescheduled}টি পরীক্ষা re-schedule হয়েছে।`);load()}catch(x){note(x.response?.data?.message||'Reschedule failed.','error')}}function edit(x){editing.value=x;Object.assign(e,{...x,exam_date:String(x.exam_date||'').replace(/(\d{2})-([A-Z]{3})-(\d{4})/,(_,d,m,y)=>`${y}-${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'].indexOf(m)+1}`),start_time:String(x.start_time||'').slice(0,5),end_time:String(x.end_time||'').slice(0,5)})}async function saveEdit(){try{await api.put(`/exams/exam-subjects/${editing.value.exam_subject_id}`,{...editing.value,...e});editing.value=null;note('Schedule updated.');load()}catch(x){note(x.response?.data?.message||'Update failed.','error')}}onMounted(async()=>{exams.value=(await api.get('/exams/exams')).data.data})</script><style scoped>.page{display:grid;gap:16px;padding:20px}header,article{padding:18px;border:1px solid #e2e8f0;border-radius:14px;background:#fff}header{display:flex;justify-content:space-between;align-items:center}h1,h2{margin-top:0}button{padding:9px 12px;border:0;border-radius:8px;background:#4338ca;color:#fff;font:inherit;font-weight:800;margin-left:6px}.secondary{background:#64748b}.mini{padding:6px 8px}.filter label,.modal label{display:grid;gap:5px;font-size:12px;font-weight:800;max-width:320px}.filter select,.modal input{padding:9px;border:1px solid #cbd5e1;border-radius:7px;font:inherit}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}.backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:#0f172a88}.modal{width:min(430px,calc(100% - 36px));display:grid;gap:12px;padding:22px;border-radius:16px;background:#fff}.success,.error{padding:10px}.success{background:#dcfce7;color:#166534}.error{background:#fee2e2;color:#b91c1c}@media(max-width:700px){header{align-items:flex-start;flex-direction:column}}</style>
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2  |  [39m
+  Plugin: [35mvite:vue[39m
+  File: [36mD:/pbm/apps/admin/src/views/exam/RoutineGeneratorView.vue[39m
+[2m7:40:22 PM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/fees/lookups[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m7:43:44 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue Router warn]: No match found for location with path "/security/menus/714"
+[2m7:44:03 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue Router warn]: No match found for location with path "/security/menus/691"
+[2m7:44:29 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue Router warn]: No match found for location with path "/security/menus/585"
+[2m8:10:43 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: <tr> cannot be child of <table>, according to HTML specifications. This can cause hydration errors or potentially disrupt future functionality.
+1  |  <template><section class="page"><header><div><h1>Exam Routine & Seating</h1><p>Routine তৈরি, তারিখ পরিবর্তন এবং classroom-based seating plan।</p></div><div><button :disabled="!examId" @click="showGenerate=true">Generate Routine</button><button :disabled="!examId" @click="showReschedule=true">Reschedule</button><button :disabled="!examId" @click="seating">Generate Seating</button></div></header><p v-if="msg" :class="kind">{{msg}}</p><article><label>Exam<select v-model="examId" @change="loadAll"><option value="">Select exam</option><option v-for="x in exams" :value="x.exam_id">{{x.exam_name}} — {{x.class_name||'All'}}</option></select></label></article><article><h2>Routine</h2><table><tr><th>Subject</th><th>Date</th><th>Time</th><th>Room</th><th></th></tr><tr v-for="x in subjects"><td>{{x.subject_name}}</td><td>{{x.exam_date||'—'}}</td><td>{{x.start_time||'—'}} – {{x.end_time||'—'}}</td><td>{{x.room_no||'—'}}</td><td><button class="mini" @click="edit(x)">Edit</button></td></tr></table></article><article v-if="seats.length"><h2>Seating Plan</h2><table><tr><th>Room</th><th>Seat</th><th>Candidate</th><th>Student</th></tr><tr v-for="x in seats"><td>{{x.room_no}}</td><td>{{x.seat_no}}</td><td>{{x.candidate_no}}</td><td>{{x.full_name}}</td></tr></table></article><div v-if="showGenerate" class="backdrop"><form @submit.prevent="generate"><h2>Generate Routine</h2><input v-model="g.start_date" type="date" required/><input v-model="g.start_time" type="time" required/><input v-model.number="g.duration_minutes" type="number" min="15"/><label><input v-model="g.skip_friday" type="checkbox"/> শুক্রবার বাদ</label><button>Generate</button><button type="button" @click="showGenerate=false">Cancel</button></form></div><div v-if="showReschedule" class="backdrop"><form @submit.prevent="reschedule"><h2>Reschedule</h2><input v-model="r.from_date" type="date" required/><input v-model.number="r.shift_days" type="number" required placeholder="Days: +2 / -1"/><button>Save</button><button type="button" @click="showReschedule=false">Cancel</button></form></div><div v-if="editRow" class="backdrop"><form @submit.prevent="saveEdit"><h2>Edit Schedule</h2><input v-model="e.exam_date" type="date"/><input v-model="e.start_time" type="time"/><input v-model="e.end_time" type="time"/><input v-model="e.room_no" placeholder="Classroom / Room No"/><button>Update</button><button type="button" @click="editRow=null">Cancel</button></form></div></section></template><script setup>import{onMounted,reactive,ref}from'vue';import api from'../../services/api';const exams=ref([]),subjects=ref([]),seats=ref([]),examId=ref(''),showGenerate=ref(false),showReschedule=ref(false),editRow=ref(null),msg=ref(''),kind=ref('success'),g=reactive({start_date:new Date().toISOString().slice(0,10),start_time:'10:00',duration_minutes:180,skip_friday:true}),r=reactive({from_date:'',shift_days:1}),e=reactive({exam_date:'',start_time:'',end_time:'',room_no:''});const note=(x,k='success')=>{msg.value=x;kind.value=k};async function loadAll(){if(!examId.value)return;subjects.value=(await api.get(`/exams/exams/${examId.value}/subjects`)).data.data;seats.value=(await api.get(`/exams/exams/${examId.value}/seating`)).data.data}async function generate(){try{await api.post(`/exams/exams/${examId.value}/routine/generate`,g);showGenerate.value=false;note('Routine generated.');loadAll()}catch(x){note(x.response?.data?.message||'Failed.','error')}}async function reschedule(){try{await api.post(`/exams/exams/${examId.value}/routine/reschedule`,r);showReschedule.value=false;note('Routine rescheduled.');loadAll()}catch(x){note(x.response?.data?.message||'Failed.','error')}}function edit(x){editRow.value=x;Object.assign(e,{exam_date:'',start_time:String(x.start_time||'').slice(0,5),end_time:String(x.end_time||'').slice(0,5),room_no:x.room_no||''})}async function saveEdit(){try{await api.put(`/exams/exam-subjects/${editRow.value.exam_subject_id}`,{...editRow.value,...e});editRow.value=null;note('Schedule updated.');loadAll()}catch(x){note(x.response?.data?.message||'Failed.','error')}}async function seating(){try{const x=await api.post(`/exams/exams/${examId.value}/seating/generate`);note(`${x.data.data.assigned} candidates seated.`);loadAll()}catch(x){note(x.response?.data?.message||'Failed.','error')}}onMounted(async()=>{exams.value=(await api.get('/exams/exams')).data.data})</script><style scoped>.page{display:grid;gap:16px;padding:20px}header,article{padding:18px;border:1px solid #e2e8f0;border-radius:14px;background:#fff}header{display:flex;justify-content:space-between;align-items:center}h1,h2{margin-top:0}button{padding:8px 11px;border:0;border-radius:7px;background:#4338ca;color:#fff;font-weight:800;margin:3px}input,select{padding:9px;border:1px solid #cbd5e1;border-radius:7px;font:inherit}article label{display:grid;gap:5px;max-width:320px;font-size:12px;font-weight:800}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}.backdrop{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:#0f172a88}.backdrop form{display:grid;gap:11px;width:min(400px,calc(100% - 30px));padding:22px;border-radius:15px;background:white}.success,.error{padding:10px}.success{background:#dcfce7;color:#166534}.error{background:#fee2e2;color:#b91c1c}@media(max-width:700px){header{align-items:flex-start;flex-direction:column}}</style>
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2  |  [39m
+  Plugin: [35mvite:vue[39m
+  File: [36mD:/pbm/apps/admin/src/views/exam/RoutineGeneratorView.vue[39m
+[2m8:10:43 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: <tr> cannot be child of <table>, according to HTML specifications. This can cause hydration errors or potentially disrupt future functionality.
+1  |  <template><section class="page"><header><div><h1>Exam Routine & Seating</h1><p>Routine তৈরি, তারিখ পরিবর্তন এবং classroom-based seating plan।</p></div><div><button :disabled="!examId" @click="showGenerate=true">Generate Routine</button><button :disabled="!examId" @click="showReschedule=true">Reschedule</button><button :disabled="!examId" @click="seating">Generate Seating</button></div></header><p v-if="msg" :class="kind">{{msg}}</p><article><label>Exam<select v-model="examId" @change="loadAll"><option value="">Select exam</option><option v-for="x in exams" :value="x.exam_id">{{x.exam_name}} — {{x.class_name||'All'}}</option></select></label></article><article><h2>Routine</h2><table><tr><th>Subject</th><th>Date</th><th>Time</th><th>Room</th><th></th></tr><tr v-for="x in subjects"><td>{{x.subject_name}}</td><td>{{x.exam_date||'—'}}</td><td>{{x.start_time||'—'}} – {{x.end_time||'—'}}</td><td>{{x.room_no||'—'}}</td><td><button class="mini" @click="edit(x)">Edit</button></td></tr></table></article><article v-if="seats.length"><h2>Seating Plan</h2><table><tr><th>Room</th><th>Seat</th><th>Candidate</th><th>Student</th></tr><tr v-for="x in seats"><td>{{x.room_no}}</td><td>{{x.seat_no}}</td><td>{{x.candidate_no}}</td><td>{{x.full_name}}</td></tr></table></article><div v-if="showGenerate" class="backdrop"><form @submit.prevent="generate"><h2>Generate Routine</h2><input v-model="g.start_date" type="date" required/><input v-model="g.start_time" type="time" required/><input v-model.number="g.duration_minutes" type="number" min="15"/><label><input v-model="g.skip_friday" type="checkbox"/> শুক্রবার বাদ</label><button>Generate</button><button type="button" @click="showGenerate=false">Cancel</button></form></div><div v-if="showReschedule" class="backdrop"><form @submit.prevent="reschedule"><h2>Reschedule</h2><input v-model="r.from_date" type="date" required/><input v-model.number="r.shift_days" type="number" required placeholder="Days: +2 / -1"/><button>Save</button><button type="button" @click="showReschedule=false">Cancel</button></form></div><div v-if="editRow" class="backdrop"><form @submit.prevent="saveEdit"><h2>Edit Schedule</h2><input v-model="e.exam_date" type="date"/><input v-model="e.start_time" type="time"/><input v-model="e.end_time" type="time"/><input v-model="e.room_no" placeholder="Classroom / Room No"/><button>Update</button><button type="button" @click="editRow=null">Cancel</button></form></div></section></template><script setup>import{onMounted,reactive,ref}from'vue';import api from'../../services/api';const exams=ref([]),subjects=ref([]),seats=ref([]),examId=ref(''),showGenerate=ref(false),showReschedule=ref(false),editRow=ref(null),msg=ref(''),kind=ref('success'),g=reactive({start_date:new Date().toISOString().slice(0,10),start_time:'10:00',duration_minutes:180,skip_friday:true}),r=reactive({from_date:'',shift_days:1}),e=reactive({exam_date:'',start_time:'',end_time:'',room_no:''});const note=(x,k='success')=>{msg.value=x;kind.value=k};async function loadAll(){if(!examId.value)return;subjects.value=(await api.get(`/exams/exams/${examId.value}/subjects`)).data.data;seats.value=(await api.get(`/exams/exams/${examId.value}/seating`)).data.data}async function generate(){try{await api.post(`/exams/exams/${examId.value}/routine/generate`,g);showGenerate.value=false;note('Routine generated.');loadAll()}catch(x){note(x.response?.data?.message||'Failed.','error')}}async function reschedule(){try{await api.post(`/exams/exams/${examId.value}/routine/reschedule`,r);showReschedule.value=false;note('Routine rescheduled.');loadAll()}catch(x){note(x.response?.data?.message||'Failed.','error')}}function edit(x){editRow.value=x;Object.assign(e,{exam_date:'',start_time:String(x.start_time||'').slice(0,5),end_time:String(x.end_time||'').slice(0,5),room_no:x.room_no||''})}async function saveEdit(){try{await api.put(`/exams/exam-subjects/${editRow.value.exam_subject_id}`,{...editRow.value,...e});editRow.value=null;note('Schedule updated.');loadAll()}catch(x){note(x.response?.data?.message||'Failed.','error')}}async function seating(){try{const x=await api.post(`/exams/exams/${examId.value}/seating/generate`);note(`${x.data.data.assigned} candidates seated.`);loadAll()}catch(x){note(x.response?.data?.message||'Failed.','error')}}onMounted(async()=>{exams.value=(await api.get('/exams/exams')).data.data})</script><style scoped>.page{display:grid;gap:16px;padding:20px}header,article{padding:18px;border:1px solid #e2e8f0;border-radius:14px;background:#fff}header{display:flex;justify-content:space-between;align-items:center}h1,h2{margin-top:0}button{padding:8px 11px;border:0;border-radius:7px;background:#4338ca;color:#fff;font-weight:800;margin:3px}input,select{padding:9px;border:1px solid #cbd5e1;border-radius:7px;font:inherit}article label{display:grid;gap:5px;max-width:320px;font-size:12px;font-weight:800}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}.backdrop{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:#0f172a88}.backdrop form{display:grid;gap:11px;width:min(400px,calc(100% - 30px));padding:22px;border-radius:15px;background:white}.success,.error{padding:10px}.success{background:#dcfce7;color:#166534}.error{background:#fee2e2;color:#b91c1c}@media(max-width:700px){header{align-items:flex-start;flex-direction:column}}</style>
+   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2  |  [39m
+  Plugin: [35mvite:vue[39m
+  File: [36mD:/pbm/apps/admin/src/views/exam/RoutineGeneratorView.vue[39m
+[2m8:12:56 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /@fs/D:/pbm/apps/admin/src/views/exam/SubjectEntryView.vue. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m8:12:56 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /@fs/D:/pbm/apps/admin/src/views/exam/SubjectEntryView.vue. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m9:06:49 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue Router warn]: No match found for location with path "/institutions/1"
+[2m9:09:54 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue Router warn]: No match found for location with path "/institutions/1"
+[2m9:13:08 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /@fs/D:/pbm/apps/admin/src/views/exam/SubjectEntryView.vue. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m9:14:40 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue Router warn]: No match found for location with path "/institutions/1"
+[2m9:18:35 PM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22m[Vue warn]: Unhandled error during execution of native event handler 
+  at <SubjectEntryView onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <AppLayout onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< {} > > 
+  at <RouterView> 
+  at <App>
+[2m9:18:35 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mAxiosError[22m: Request failed with status code 400
+[39m > settle ../../node_modules/axios/lib/core/settle.js:19:11
+ > XMLHttpRequest.onloadend ../../node_modules/axios/lib/adapters/xhr.js:63:8
+
+[2m9:18:52 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /@fs/D:/pbm/apps/admin/src/views/exam/SubjectEntryView.vue. This could be due to syntax errors or importing non-existent modules. (see errors above)
+Failed to update subject. Error: Duplicate entry '1-DAK-102' for key 'subjects.uk_subjects'
+    at executeRaw (file:///D:/pbm/apps/api/src/config/db.js:180:35)
+    at executeQuery (file:///D:/pbm/apps/api/src/config/db.js:286:26)
+    at Object.query (file:///D:/pbm/apps/api/src/config/db.js:322:12)
+    at file:///D:/pbm/apps/api/src/routes/examRoutes.js:45:1720
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  code: 'ER_DUP_ENTRY',
+  errno: 1062,
+  sqlState: '23000',
+  sqlMessage: "Duplicate entry '1-DAK-102' for key 'subjects.uk_subjects'",
+  sql: 'UPDATE subjects SET subject_code=?,subject_name=?,curriculum_type=?,subject_type=?,full_marks=?,pass_marks=?,written_marks=?,mcq_marks=?,practical_marks=?,viva_marks=? WHERE subject_id=?'
+}
+Failed to update subject. Error: Duplicate entry '1-DAK-102' for key 'subjects.uk_subjects'
+    at executeRaw (file:///D:/pbm/apps/api/src/config/db.js:180:35)
+    at executeQuery (file:///D:/pbm/apps/api/src/config/db.js:286:26)
+    at Object.query (file:///D:/pbm/apps/api/src/config/db.js:322:12)
+    at file:///D:/pbm/apps/api/src/routes/examRoutes.js:45:1720
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  code: 'ER_DUP_ENTRY',
+  errno: 1062,
+  sqlState: '23000',
+  sqlMessage: "Duplicate entry '1-DAK-102' for key 'subjects.uk_subjects'",
+  sql: 'UPDATE subjects SET subject_code=?,subject_name=?,curriculum_type=?,subject_type=?,full_marks=?,pass_marks=?,written_marks=?,mcq_marks=?,practical_marks=?,viva_marks=? WHERE subject_id=?'
+}
+[2m10:08:53 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /@fs/D:/pbm/apps/admin/src/views/exam/ClassSubjectSetupView.vue. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m11:59:51 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /@fs/D:/pbm/apps/admin/src/components/common/BaseSelect.vue. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[2m12:07:56 AM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22m[vite] Failed to reload /@fs/D:/pbm/apps/admin/src/views/exam/ExamManagementView.vue. This could be due to syntax errors or importing non-existent modules. (see errors above)
