@@ -51,6 +51,8 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import api from '../../services/api';
+import { confirmAction, notify } from '../../services/notification';
+import { withPreservedScroll } from '../../utils/preserveScroll';
 import BaseSelect from '../../components/common/BaseSelect.vue';
 
 const route = useRoute();
@@ -81,7 +83,7 @@ function openExam(exam) { if (exam) { examId.value = exam.exam_id; Object.assign
 function openSubject(subject) { if (subject) { subjectId.value = subject.exam_subject_id; Object.assign(sf, { ...subject, exam_date: toInputDate(subject.exam_date), start_time: String(subject.start_time || '').slice(0, 5), end_time: String(subject.end_time || '').slice(0, 5) }); } else resetSubject(); subjectModal.value = true; }
 async function saveExam() { try { const response = examId.value ? await api.put(`/exams/exams/${examId.value}`, ef) : await api.post('/exams/exams', ef); examModal.value = false; await loadSetup(); note('Exam saved.'); if (!current.value) await pickExam(response.data.data); } catch (error) { note(error.response?.data?.message || 'Save failed.', 'error'); } }
 async function saveSubject() { try { if (subjectId.value) await api.put(`/exams/exam-subjects/${subjectId.value}`, sf); else await api.post(`/exams/exams/${current.value.exam_id}/subjects`, sf); subjectModal.value = false; await pickExam(current.value); note('Subject saved.'); } catch (error) { note(error.response?.data?.message || 'Save failed.', 'error'); } }
-async function deleteSubject(subject) { if (!confirm(`Delete ${subject.subject_name}?`)) return; try { await api.delete(`/exams/exam-subjects/${subject.exam_subject_id}`); await pickExam(current.value); note('Subject deleted.'); } catch (error) { note(error.response?.data?.message || 'Delete failed.', 'error'); } }
+async function deleteSubject(subject) { if (!await confirmAction({ title: 'Delete exam subject?', message: `“${subject.subject_name}” will be removed from this exam.`, confirmText: 'Delete subject' })) return; try { await api.delete(`/exams/exam-subjects/${subject.exam_subject_id}`); await withPreservedScroll(() => pickExam(current.value)); note('Subject deleted.'); notify.success('Exam subject deleted.'); } catch (error) { note(error.response?.data?.message || 'Delete failed.', 'error'); notify.error(msg.value); } }
 onMounted(() => isDashboard.value ? loadDashboard() : loadSetup().catch(() => note('Setup load failed.', 'error')));
 watch(isDashboard, (dashboard) => { if (dashboard) loadDashboard(); else loadSetup().catch(() => note('Setup load failed.', 'error')); });
 </script>

@@ -23,6 +23,8 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 
 import api from "../../services/api";
+import { confirmAction, notify } from "../../services/notification";
+import { withPreservedScroll } from "../../utils/preserveScroll";
 
 import StudentListTable from "../../components/student/StudentListTable.vue";
 import AlertMessage from "../../components/common/AlertMessage.vue";
@@ -164,13 +166,19 @@ async function deleteStudent(student) {
     return;
   }
 
-  if (!confirm("Are you sure you want to delete this student?")) return;
+  if (!await confirmAction({
+    title: "Delete student?",
+    message: "This student record will be permanently deleted. This action cannot be undone.",
+    confirmText: "Delete student",
+  })) return;
 
   try {
     await api.delete(`/student-admissions/full/${id}`);
-    await loadStudents();
+    notify.success("Student deleted successfully.");
+    await withPreservedScroll(loadStudents);
   } catch (error) {
     console.error("Student delete error:", error);
+    notify.error(error.response?.data?.message || "Failed to delete student.");
 
     alert.value = {
       type: "error",

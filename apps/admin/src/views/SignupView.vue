@@ -57,6 +57,7 @@ import { reactive, ref } from 'vue'
 import AuthCard from '../components/AuthCard.vue'
 import BaseInput from '../components/BaseInput.vue'
 import BaseButton from '../components/BaseButton.vue'
+import { notify } from '../services/notification'
 
 const loading = ref(false)
 
@@ -126,7 +127,7 @@ const submitForm = async () => {
 
   setTimeout(() => {
     loading.value = false
-    alert('Account created successfully')
+    notify.success('Account created successfully')
   }, 1000)
 }
 </script>

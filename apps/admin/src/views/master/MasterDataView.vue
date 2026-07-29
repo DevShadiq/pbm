@@ -137,6 +137,8 @@ import BaseTable from "../../components/common/BaseTable.vue";
 import AlertMessage from "../../components/common/AlertMessage.vue";
 import LoadingSpinner from "../../components/common/LoadingSpinner.vue";
 import { toIsoDate } from "../../utils/dateFormat";
+import { confirmAction, notify } from "../../services/notification";
+import { withPreservedScroll } from "../../utils/preserveScroll";
 
 const loading = ref(false);
 const showForm = ref(false);
@@ -637,15 +639,23 @@ async function saveData() {
 async function deleteData(row) {
   const idValue = row[activeModule.value.id];
 
-  if (!confirm(`Delete this ${activeModule.value.singleTitle}?`)) return;
+  if (!await confirmAction({
+    title: `Delete ${activeModule.value.singleTitle}?`,
+    message: `This ${activeModule.value.singleTitle.toLowerCase()} will be permanently deleted.`,
+    confirmText: "Delete record",
+  })) return;
 
   try {
     await api.delete(`${activeModule.value.endpoint}/${idValue}`);
     showAlert("success", `${activeModule.value.singleTitle} deleted successfully`);
-    await loadLookups();
-    await loadData();
+    notify.success(`${activeModule.value.singleTitle} deleted successfully`);
+    await withPreservedScroll(async () => {
+      await loadLookups();
+      await loadData();
+    });
   } catch (error) {
     showAlert("danger", getErrorMessage(error, "Delete failed"));
+    notify.error(getErrorMessage(error, "Delete failed"));
   }
 }
 

@@ -71,6 +71,8 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 import api from '../../services/api';
+import { confirmAction, notify } from '../../services/notification';
+import { withPreservedScroll } from '../../utils/preserveScroll';
 
 const curriculumOptions = [
   { value: 'ALL', label: 'All Institutions' },
@@ -124,9 +126,9 @@ async function changeCurriculum(subject, event) {
   catch (error) { msg.value = error.response?.data?.message || 'Permission denied.'; kind.value = 'error'; event.target.value = subject.curriculum_type; }
 }
 async function remove(subject) {
-  if (!confirm(`Delete ${subject.subject_name}?`)) return;
-  try { await api.delete(`/exams/subjects/${subject.subject_id}`); msg.value = 'Subject deleted.'; kind.value = 'success'; await load(); }
-  catch (error) { msg.value = error.response?.data?.message || 'Delete failed.'; kind.value = 'error'; }
+  if (!await confirmAction({ title: 'Delete subject?', message: `“${subject.subject_name}” will be permanently deleted.`, confirmText: 'Delete subject' })) return;
+  try { await api.delete(`/exams/subjects/${subject.subject_id}`); msg.value = 'Subject deleted.'; kind.value = 'success'; notify.success(msg.value); await withPreservedScroll(load); }
+  catch (error) { msg.value = error.response?.data?.message || 'Delete failed.'; kind.value = 'error'; notify.error(msg.value); }
 }
 onMounted(load);
 </script>

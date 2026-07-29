@@ -30,6 +30,8 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 import api from '../../services/api';
+import { confirmAction, notify } from '../../services/notification';
+import { withPreservedScroll } from '../../utils/preserveScroll';
 import BaseSelect from '../../components/common/BaseSelect.vue';
 
 const labels = { ALL: 'All Institutions', SCHOOL: 'School', COLLEGE: 'College', MADRASA: 'Madrasa', COACHING_CENTER: 'Coaching Center', UNIVERSITY: 'University', POLYTECHNIC: 'Polytechnic', VOCATIONAL_INSTITUTE: 'Vocational Institute' };
@@ -44,7 +46,7 @@ function openAssign() { editing.value = null; Object.assign(f, { subject_id: '',
 function openEdit(row) { editing.value = row; Object.assign(f, { subject_id: row.subject_id, sort_order: Number(row.sort_order || 0), is_mandatory: Boolean(Number(row.is_mandatory)) }); modal.value = true; }
 async function load() { if (classId.value) rows.value = (await api.get(`/exams/classes/${classId.value}/subjects`)).data.data || []; }
 async function assign() { try { if (editing.value) await api.put(`/exams/class-subjects/${editing.value.class_subject_id}`, f); else await api.post(`/exams/classes/${classId.value}/subjects`, f); modal.value = false; editing.value = null; Object.assign(f, { subject_id: '', sort_order: 0, is_mandatory: true }); msg.value = 'Class subject saved.'; kind.value = 'success'; await load(); } catch (error) { msg.value = error.response?.data?.message || 'Save failed.'; kind.value = 'error'; } }
-async function remove(row) { if (!confirm(`Remove ${row.subject_name}?`)) return; try { await api.delete(`/exams/class-subjects/${row.class_subject_id}`); await load(); } catch (error) { msg.value = error.response?.data?.message || 'Remove failed.'; kind.value = 'error'; } }
+async function remove(row) { if (!await confirmAction({ title: 'Remove class subject?', message: `${row.subject_name} will no longer be assigned to this class.`, confirmText: 'Remove subject' })) return; try { await api.delete(`/exams/class-subjects/${row.class_subject_id}`); notify.success('Class subject removed.'); await withPreservedScroll(load); } catch (error) { msg.value = error.response?.data?.message || 'Remove failed.'; kind.value = 'error'; notify.error(msg.value); } }
 onMounted(async () => { const data = (await api.get('/exams/lookups')).data.data; classes.value = data.classes || []; subjects.value = data.subjects || []; institutionType.value = data.institution_type || ''; allowedTypes.value = data.allowed_curriculum_types || []; });
 </script>
 

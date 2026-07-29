@@ -103,6 +103,8 @@
 import { onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 import { menuApi } from "../../services/api";
+import { confirmAction, notify } from "../../services/notification";
+import { withPreservedScroll } from "../../utils/preserveScroll";
 
 import BaseButton from "../../components/common/BaseButton.vue";
 import BaseCard from "../../components/common/BaseCard.vue";
@@ -130,14 +132,20 @@ async function loadMenus() {
 }
 
 async function deleteMenu(menuId) {
-  if (!confirm("Are you sure you want to delete this menu?")) return;
+  if (!await confirmAction({
+    title: "Delete menu?",
+    message: "This menu and its access assignment will be permanently deleted.",
+    confirmText: "Delete menu",
+  })) return;
 
   try {
     await menuApi.delete(menuId);
     message.value = "Menu deleted successfully";
-    await loadMenus();
+    notify.success(message.value);
+    await withPreservedScroll(loadMenus);
   } catch (error) {
     message.value = error.response?.data?.message || "Failed to delete menu";
+    notify.error(message.value);
   }
 }
 

@@ -130,7 +130,9 @@
 <script setup>
 import { computed, nextTick, onMounted, ref } from "vue";
 import { noticeApi } from "../../services/api";
+import { confirmAction, notify, promptAction } from "../../services/notification";
 import { can } from "../../utils/permission";
+import { withPreservedScroll } from "../../utils/preserveScroll";
 import BaseButton from "../../components/common/BaseButton.vue";
 import BaseCard from "../../components/common/BaseCard.vue";
 
@@ -217,8 +219,15 @@ function formatText(command, value = null) {
   captureSelection();
 }
 
-function addLink() {
-  const url = window.prompt("Enter the link URL (https://...)");
+async function addLink() {
+  const url = await promptAction({
+    title: "Add a link",
+    message: "Enter the complete web address for the selected text.",
+    label: "Link URL",
+    placeholder: "https://example.com",
+    inputType: "url",
+    confirmText: "Add link",
+  });
   if (!url) return;
   restoreSelection();
   document.execCommand("createLink", false, url.trim());
@@ -317,13 +326,19 @@ async function saveNotice() {
 }
 
 async function removeNotice(notice) {
-  if (!confirm(`Delete “${notice.title_bn || notice.title}”?`)) return;
+  if (!await confirmAction({
+    title: "Delete notice?",
+    message: `“${notice.title_bn || notice.title}” will be permanently deleted.`,
+    confirmText: "Delete notice",
+  })) return;
   try {
     await noticeApi.delete(notice.notice_id);
     showMessage("Notice deleted successfully.");
-    await loadData();
+    notify.success("Notice deleted successfully.");
+    await withPreservedScroll(loadData);
   } catch (error) {
     showMessage(error.response?.data?.message || "Failed to delete notice.", "error");
+    notify.error(message.value);
   }
 }
 

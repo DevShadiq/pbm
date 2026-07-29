@@ -20,19 +20,20 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import api from "../../services/api";
+import { notify } from "../../services/notification";
 const router = useRouter();
 const step = ref("send"), loading = ref(false), mobile = ref(""), otp = ref(""), password = ref(""), confirmPassword = ref("");
 async function sendOtp() {
-  if (!mobile.value) return alert("Enter your mobile number.");
-  try { loading.value = true; const { data } = await api.post("/auth/forgot-password/mobile", { mobile: mobile.value }); alert(data.message); step.value = "verify"; }
-  catch (error) { alert(error.response?.data?.message || "Unable to send OTP."); }
+  if (!mobile.value) return notify.warning("Enter your mobile number.");
+  try { loading.value = true; const { data } = await api.post("/auth/forgot-password/mobile", { mobile: mobile.value }); notify.success(data.message); step.value = "verify"; }
+  catch (error) { notify.error(error.response?.data?.message || "Unable to send OTP."); }
   finally { loading.value = false; }
 }
 async function resetPassword() {
-  if (!/^\d{6}$/.test(otp.value)) return alert("Enter the six-digit OTP.");
-  if (password.value !== confirmPassword.value) return alert("Passwords do not match.");
-  try { loading.value = true; const { data } = await api.post("/auth/reset-password/mobile-otp", { mobile: mobile.value, otp: otp.value, password: password.value }); alert(data.message); router.push("/login"); }
-  catch (error) { alert(error.response?.data?.message || "Unable to reset password."); }
+  if (!/^\d{6}$/.test(otp.value)) return notify.warning("Enter the six-digit OTP.");
+  if (password.value !== confirmPassword.value) return notify.warning("Passwords do not match.");
+  try { loading.value = true; const { data } = await api.post("/auth/reset-password/mobile-otp", { mobile: mobile.value, otp: otp.value, password: password.value }); notify.success(data.message); router.push("/login"); }
+  catch (error) { notify.error(error.response?.data?.message || "Unable to reset password."); }
   finally { loading.value = false; }
 }
 </script>

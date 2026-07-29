@@ -80,6 +80,8 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { roleApi } from "../../services/api";
+import { confirmAction, notify } from "../../services/notification";
+import { withPreservedScroll } from "../../utils/preserveScroll";
 
 import BaseButton from "../common/BaseButton.vue";
 import BaseCard from "../common/BaseCard.vue";
@@ -108,14 +110,20 @@ async function loadRoles() {
 }
 
 async function deleteRole(roleId) {
-  if (!confirm("Are you sure you want to delete this role?")) return;
+  if (!await confirmAction({
+    title: "Delete role?",
+    message: "This role and its access assignments will be permanently deleted.",
+    confirmText: "Delete role",
+  })) return;
 
   try {
     await roleApi.delete(roleId);
     message.value = "Role deleted successfully";
-    await loadRoles();
+    notify.success(message.value);
+    await withPreservedScroll(loadRoles);
   } catch (error) {
     message.value = error.response?.data?.message || "Failed to delete role";
+    notify.error(message.value);
   }
 }
 

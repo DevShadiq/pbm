@@ -101,6 +101,8 @@
 import { computed, onMounted, reactive, ref, watch } from "vue";
 // import { userRoleApi } from "../../api/api";
 import api, { userRoleApi } from "../../services/api";
+import { confirmAction, notify } from "../../services/notification";
+import { withPreservedScroll } from "../../utils/preserveScroll";
 
 import BaseSelect from "../common/BaseSelect.vue";
 import BaseButton from "../common/BaseButton.vue";
@@ -221,7 +223,12 @@ async function assignRole() {
 }
 
 async function removeRole(item) {
-  if (!confirm("Remove this role from user?")) return;
+  if (!await confirmAction({
+    title: "Remove user role?",
+    message: "The user will immediately lose the access granted by this role.",
+    confirmText: "Remove role",
+    type: "warning",
+  })) return;
 
   try {
     await userRoleApi.remove({
@@ -231,10 +238,14 @@ async function removeRole(item) {
     });
 
     message.value = "Role removed successfully";
-    await loadUserRoles();
-    await refreshCurrentAccess();
+    notify.success(message.value);
+    await withPreservedScroll(async () => {
+      await loadUserRoles();
+      await refreshCurrentAccess();
+    });
   } catch (error) {
     message.value = error.response?.data?.message || "Failed to remove role";
+    notify.error(message.value);
   }
 }
 

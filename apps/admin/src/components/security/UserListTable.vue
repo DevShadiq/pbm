@@ -68,6 +68,8 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { userApi } from  "../../services/api";
+import { confirmAction, notify } from "../../services/notification";
+import { withPreservedScroll } from "../../utils/preserveScroll";
 
 import BaseButton from "../common/BaseButton.vue";
 import BaseCard from "../common/BaseCard.vue";
@@ -100,14 +102,20 @@ async function loadUsers() {
 }
 
 async function deleteUser(userId) {
-  if (!confirm("Are you sure you want to delete this user?")) return;
+  if (!await confirmAction({
+    title: "Delete user?",
+    message: "This user account will be permanently deleted and will no longer be able to sign in.",
+    confirmText: "Delete user",
+  })) return;
 
   try {
     await userApi.delete(userId);
     message.value = "User deleted successfully";
-    await loadUsers();
+    notify.success(message.value);
+    await withPreservedScroll(loadUsers);
   } catch (error) {
     message.value = error.response?.data?.message || "Failed to delete user";
+    notify.error(message.value);
   }
 }
 

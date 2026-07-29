@@ -97,6 +97,8 @@
 import { onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 import { roleApi } from "../../services/api";
+import { confirmAction, notify } from "../../services/notification";
+import { withPreservedScroll } from "../../utils/preserveScroll";
 
 import BaseButton from "../../components/common/BaseButton.vue";
 import BaseCard from "../../components/common/BaseCard.vue";
@@ -125,21 +127,26 @@ async function loadRoles() {
 async function deleteRole(role) {
   if (role.is_system_role) {
     message.value = "System role cannot be deleted";
+    notify.warning(message.value);
     return;
   }
 
-  const confirmDelete = confirm(
-    `Are you sure you want to delete role "${role.role_name}"?`
-  );
+  const confirmDelete = await confirmAction({
+    title: "Delete role?",
+    message: `Role “${role.role_name}” and its access assignments will be permanently deleted.`,
+    confirmText: "Delete role",
+  });
 
   if (!confirmDelete) return;
 
   try {
     await roleApi.delete(role.role_id);
     message.value = "Role deleted successfully";
-    await loadRoles();
+    notify.success(message.value);
+    await withPreservedScroll(loadRoles);
   } catch (error) {
     message.value = error.response?.data?.message || "Failed to delete role";
+    notify.error(message.value);
   }
 }
 

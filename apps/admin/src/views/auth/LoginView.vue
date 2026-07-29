@@ -12,6 +12,7 @@ import { useRouter } from "vue-router";
 
 import LoginForm from "../../components/auth/LoginForm.vue";
 import api from "../../services/api";
+import { notify } from "../../services/notification";
 
 const router = useRouter();
 const loading = ref(false);
@@ -34,7 +35,7 @@ const handleLogin = async (payload) => {
       loginRes.data.data?.accessToken;
 
     if (!token) {
-      alert("Login success but token not found.");
+      notify.error("Login succeeded, but the access token was not returned.");
       return;
     }
 
@@ -54,7 +55,7 @@ const handleLogin = async (payload) => {
     console.error("Login error response:", error.response?.data);
     console.error("Login error:", error);
 
-    alert(error.response?.data?.message || "Login failed");
+    notify.error(error.response?.data?.message || "Login failed");
   } finally {
     loading.value = false;
   }
