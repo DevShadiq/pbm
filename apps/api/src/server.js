@@ -362,6 +362,11 @@ if (hasWebsiteBuild) {
 }
 
 const PORT = process.env.PORT || 5000;
+// Menu, role-menu, and permission catalog synchronization can overwrite the
+// built-in menu configuration. Keep it opt-in so normal development startup
+// never changes existing menu data or ordering.
+const syncSecurityCatalogOnStartup =
+  process.env.SYNC_SECURITY_CATALOG_ON_STARTUP === "true";
 
 async function startServer() {
   try { await ensureExamSchema(); console.log("Exam schema synchronized"); } catch (error) { console.error("Exam schema synchronization failed:", error.message); }
@@ -393,11 +398,15 @@ async function startServer() {
     console.error("Employee schema synchronization failed:", error.message);
   }
 
-  try {
-    await ensureSecurityCatalog();
-    console.log("Security catalog synchronized");
-  } catch (error) {
-    console.error("Security catalog synchronization failed:", error.message);
+  if (syncSecurityCatalogOnStartup) {
+    try {
+      await ensureSecurityCatalog();
+      console.log("Security catalog synchronized");
+    } catch (error) {
+      console.error("Security catalog synchronization failed:", error.message);
+    }
+  } else {
+    console.log("Security catalog synchronization skipped to preserve existing menu data");
   }
 
   app.listen(PORT, "0.0.0.0", () => {
