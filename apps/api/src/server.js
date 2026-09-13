@@ -1,3 +1,4 @@
+import { ensureStudentSubjectSchema } from './utils/ensureStudentSubjectSchema.js';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -15,9 +16,9 @@ import employeeRoutes from "./routes/employeeRoutes.js";
 import noticeRoutes from "./routes/noticeRoutes.js";
 import eventRoutes from "./routes/eventRoutes.js";
 import feeRoutes from "./routes/feeRoutes.js";
-import examRoutes from "./routes/examRoutes.js";
+import examRoutes, { publicExamRoutes } from "./routes/examRoutes.js";
 import pool from "./config/db.js";
-import { ensureSecurityCatalog } from "./utils/ensureSecurityCatalog.js";
+import { ensureSchoolManagementMenus, ensureSecurityCatalog } from "./utils/ensureSecurityCatalog.js";
 import { ensureEmployeeSchema } from "./utils/ensureEmployeeSchema.js";
 import { ensureEventSchema } from "./utils/ensureEventSchema.js";
 import { ensureFeeSchema } from "./utils/ensureFeeSchema.js";
@@ -340,6 +341,8 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/notices", noticeRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/fees", feeRoutes);
+app.use("/api/public", publicExamRoutes);
+app.use("/api/exams/public", publicExamRoutes);
 app.use("/api/exams", examRoutes);
 app.use("/api", masterRoutes);
 
@@ -370,6 +373,7 @@ const syncSecurityCatalogOnStartup =
 
 async function startServer() {
   try { await ensureExamSchema(); console.log("Exam schema synchronized"); } catch (error) { console.error("Exam schema synchronization failed:", error.message); }
+  await ensureStudentSubjectSchema();
   try {
     await ensureFeeSchema();
     console.log("Fee schema synchronized");
@@ -396,6 +400,13 @@ async function startServer() {
     console.log("Employee schema synchronized");
   } catch (error) {
     console.error("Employee schema synchronization failed:", error.message);
+  }
+
+  try {
+    await ensureSchoolManagementMenus();
+    console.log("Academic and exam menus synchronized");
+  } catch (error) {
+    console.error("Academic and exam menu synchronization failed:", error.message);
   }
 
   if (syncSecurityCatalogOnStartup) {

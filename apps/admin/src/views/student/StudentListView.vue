@@ -11,6 +11,7 @@
       :students="students"
       :loading="loading"
       @add="goToAdd"
+      @refresh="loadStudents"
       @view="viewStudent"
       @edit="editStudent"
       @delete="deleteStudent"
@@ -50,11 +51,9 @@ async function loadStudents() {
   try {
     const res = await api.get("/student-admissions/list");
 
-    console.log("Student list raw response:", res.data);
 
     const rows = getRows(res.data);
 
-    console.log("Student list rows:", rows);
 
     students.value = rows.map((s) => ({
       id: s.student_id || s.id,
@@ -74,6 +73,8 @@ async function loadStudents() {
       section_name: s.section_name || s.sectionName || "",
       roll_no: s.roll_no || s.rollNo || "",
 
+      group_name: s.group_name || "",
+      guardian_mobile: s.guardian_mobile || "",
       guardian_name: s.guardian_name || s.guardianName || "",
       father_name: s.father_name || s.fatherName || "",
       mother_name: s.mother_name || s.motherName || "",
@@ -91,7 +92,6 @@ async function loadStudents() {
       }
     }));
 
-    console.log("Mapped students:", students.value);
 
     if (!students.value.length) {
       alert.value.message = "";

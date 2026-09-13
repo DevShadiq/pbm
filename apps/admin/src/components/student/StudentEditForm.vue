@@ -1,8 +1,13 @@
 <template>
-  <BaseCard
-    title="Edit Student Admission"
-    subtitle="Update student profile, admission, guardian, address and academic information"
-  >
+  <div class="student-entry">
+    <header class="entry-heading">
+      <div>
+        <RouterLink to="/students" class="back-link">← Students</RouterLink>
+        <h1>Edit student</h1>
+        <p>Student details, enrollment and subjects — all in one place.</p>
+      </div>
+      <span class="required-note"><span>*</span> Required fields</span>
+    </header>
     <AlertMessage
       v-if="alert.message"
       :type="alert.type"
@@ -15,15 +20,15 @@
       <p>Loading student information...</p>
     </div>
 
-    <form v-else @submit.prevent="updateStudent" class="admission-form">
+    <form v-else @submit.prevent="updateStudent" class="student-entry-form">
       <!-- ================= STUDENT BASIC INFO ================= -->
-      <section class="form-section">
-        <div class="section-header">
-          <h3>Student Information</h3>
+      <section class="entry-section">
+        <div class="entry-section-heading">
+          <h3>Student details</h3>
           <p>Basic identity and contact information</p>
         </div>
 
-        <div class="form-grid">
+        <div class="entry-grid">
           <BaseSelect
             v-model="form.student.institution_id"
             label="Institution"
@@ -40,18 +45,6 @@
           />
 
           <BaseInput
-            v-model="form.student.admission_no"
-            label="Admission No"
-            placeholder="ADM-0001"
-          />
-
-          <BaseInput
-            v-model="form.student.registration_no"
-            label="Registration No"
-            placeholder="Registration no"
-          />
-
-          <BaseInput
             v-model="form.student.first_name"
             label="First Name"
             placeholder="Enter first name"
@@ -64,63 +57,74 @@
             placeholder="Enter last name"
           />
 
-          <BaseSelect
-            v-model="form.student.gender"
-            label="Gender"
-            :options="genderOptions"
-            placeholder="Select gender"
-          />
-
-          <BaseDatePicker
-            v-model="form.student.date_of_birth"
-            label="Date of Birth"
-          />
-
-          <BaseInput
-            v-model="form.student.birth_certificate_no"
-            label="Birth Certificate No"
-            placeholder="Birth certificate no"
-          />
-
-          <BaseInput
-            v-model="form.student.nid_no"
-            label="NID No"
-            placeholder="NID no"
-          />
-
-          <BaseSelect
-            v-model="form.student.blood_group"
-            label="Blood Group"
-            :options="bloodGroups"
-            placeholder="Select blood group"
-          />
-
-          <BaseInput
-            v-model="form.student.religion"
-            label="Religion"
-            placeholder="Islam / Hindu / Christian"
-          />
-
-          <BaseInput
-            v-model="form.student.nationality"
-            label="Nationality"
-            placeholder="Bangladeshi"
-          />
-
           <BaseInput
             v-model="form.student.mobile"
             label="Mobile"
             placeholder="01XXXXXXXXX"
           />
 
-          <BaseInput
+          </div>
+
+<details class="extra-details"><summary>More student details (optional)</summary><div class="entry-grid">
+<BaseInput
+            v-model="form.student.admission_no"
+            label="Admission No"
+            placeholder="ADM-0001"
+          />
+<BaseInput
+            v-model="form.student.registration_no"
+            label="Registration No"
+            placeholder="Registration no"
+          />
+<BaseSelect
+            v-model="form.student.gender"
+            label="Gender"
+            :options="genderOptions"
+            placeholder="Select gender"
+          />
+<BaseDatePicker
+            v-model="form.student.date_of_birth"
+            label="Date of Birth"
+          />
+<BaseInput
+            v-model="form.student.birth_certificate_no"
+            label="Birth Certificate No"
+            placeholder="Birth certificate no"
+          />
+<BaseInput
+            v-model="form.student.nid_no"
+            label="NID No"
+            placeholder="NID no"
+          />
+<BaseSelect
+            v-model="form.student.blood_group"
+            label="Blood Group"
+            :options="bloodGroups"
+            placeholder="Select blood group"
+          />
+<BaseInput
+            v-model="form.student.religion"
+            label="Religion"
+            placeholder="Islam / Hindu / Christian"
+          />
+<BaseInput
+            v-model="form.student.nationality"
+            label="Nationality"
+            placeholder="Bangladeshi"
+          />
+<BaseInput
             v-model="form.student.email"
             label="Email"
             type="email"
             placeholder="student@email.com"
           />
-
-          <div class="upload-field">
+<BaseSelect
+            v-model="form.student.status"
+            label="Status"
+            :options="studentStatusOptions"
+            placeholder="Select status"
+          />
+<div class="upload-field">
   <label class="upload-label">Student Photo</label>
 
   <div class="photo-upload-box">
@@ -155,24 +159,17 @@
     </div>
   </div>
 </div>
-
-          <BaseSelect
-            v-model="form.student.status"
-            label="Status"
-            :options="studentStatusOptions"
-            placeholder="Select status"
-          />
-        </div>
-      </section>
+</div></details>
+</section>
 
       <!-- ================= ADMISSION INFO ================= -->
-      <section class="form-section">
-        <div class="section-header">
-          <h3>Admission Information</h3>
-          <p>Admission date, branch and previous institute</p>
+      <section class="entry-section">
+        <div class="entry-section-heading">
+          <h3>Admission</h3>
+          <p>Branch, academic year and admission date</p>
         </div>
 
-        <div class="form-grid">
+        <div class="entry-grid">
           <BaseSelect
             v-model="form.admission.branch_id"
             label="Branch"
@@ -195,47 +192,46 @@
             required
           />
 
-          <BaseSelect
+        </div>
+
+<details class="extra-details"><summary>More admission details (optional)</summary><div class="entry-grid">
+<BaseSelect
             v-model="form.admission.admission_type"
             label="Admission Type"
             :options="admissionTypes"
             placeholder="Select admission type"
           />
-
-          <BaseInput
+<BaseInput
             v-model="form.admission.previous_institute"
             label="Previous Institute"
             placeholder="Previous school / college"
           />
-
-          <BaseInput
+<BaseInput
             v-model="form.admission.previous_class"
             label="Previous Class"
             placeholder="Previous class"
           />
-
-          <BaseSelect
+<BaseSelect
             v-model="form.admission.approval_status"
             label="Approval Status"
             :options="approvalStatusOptions"
           />
-
-          <BaseInput
+<BaseInput
             v-model="form.admission.remarks"
             label="Remarks"
             placeholder="Admission remarks"
           />
-        </div>
-      </section>
+</div></details>
+</section>
 
       <!-- ================= ACADEMIC ENROLLMENT ================= -->
-      <section class="form-section">
-        <div class="section-header">
-          <h3>Academic Enrollment</h3>
-          <p>Class, batch, section, medium, shift and roll</p>
+      <section class="entry-section">
+        <div class="entry-section-heading">
+          <h3>Enrollment & subjects</h3>
+          <p>Class, group, roll and subjects</p>
         </div>
 
-        <div class="form-grid">
+        <div class="entry-grid">
           <BaseSelect
             v-model="form.enrollment.batch_id"
             label="Batch"
@@ -259,6 +255,8 @@
           />
 
           <BaseSelect
+            v-if="requiresGroup"
+            :required="requiresGroup"
             v-model="form.enrollment.group_id"
             label="Group"
             :options="groups"
@@ -272,43 +270,50 @@
             placeholder="Select section"
           />
 
-          <BaseSelect
+        </div>
+
+<StudentSubjectPicker
+          v-model="form.subject_ids"
+          :institution-id="form.student.institution_id"
+          :class-id="form.enrollment.class_id"
+          :group-id="form.enrollment.group_id"
+          @requires-group="requiresGroup = $event"
+          @busy="subjectsBusy = $event"
+        />
+<details class="extra-details"><summary>More academic details (optional)</summary><div class="entry-grid">
+<BaseSelect
             v-model="form.enrollment.medium_id"
             label="Medium"
             :options="mediums"
             placeholder="Select medium"
           />
-
-          <BaseSelect
+<BaseSelect
             v-model="form.enrollment.shift_id"
             label="Shift"
             :options="shifts"
             placeholder="Select shift"
           />
-
-          <BaseSelect
+<BaseSelect
             v-model="form.enrollment.enrollment_status"
             label="Enrollment Status"
             :options="enrollmentStatusOptions"
           />
-
-          <BaseDatePicker
+<BaseDatePicker
             v-model="form.enrollment.start_date"
             label="Start Date"
           />
-
-          <BaseDatePicker
+<BaseDatePicker
             v-model="form.enrollment.end_date"
             label="End Date"
           />
-        </div>
-      </section>
+</div></details>
+</section>
 
       <!-- ================= GUARDIAN INFO ================= -->
-      <section class="form-section">
-        <div class="section-header with-action">
+      <section class="entry-section">
+        <div class="entry-section-heading with-action">
           <div>
-            <h3>Guardian Information</h3>
+            <h3>Guardian contact</h3>
             <p>Father, mother or local guardian information</p>
           </div>
 
@@ -320,7 +325,7 @@
         <div
           v-for="(item, index) in form.guardians"
           :key="index"
-          class="repeat-card"
+          class="entry-repeat"
         >
           <div class="repeat-header">
             <h4>Guardian {{ index + 1 }}</h4>
@@ -335,7 +340,7 @@
             </button>
           </div>
 
-          <div class="form-grid">
+          <div class="entry-grid">
             <BaseSelect
               v-model="item.relation_type"
               label="Relation Type"
@@ -352,69 +357,60 @@
             />
 
             <BaseInput
-              v-model="item.guardian.relation_name"
-              label="Relation Name"
-              placeholder="Father / Mother / Uncle"
-            />
-
-            <BaseInput
-              v-model="item.guardian.occupation"
-              label="Occupation"
-              placeholder="Occupation"
-            />
-
-            <BaseInput
-              v-model="item.guardian.nid_no"
-              label="Guardian NID"
-              placeholder="NID no"
-            />
-
-            <BaseInput
               v-model="item.guardian.mobile"
               label="Mobile"
               placeholder="01XXXXXXXXX"
             />
 
-            <BaseInput
+          </div>
+
+          <details class="extra-details"><summary>More guardian details (optional)</summary><div class="entry-grid"><BaseInput
+              v-model="item.guardian.relation_name"
+              label="Relation Name"
+              placeholder="Father / Mother / Uncle"
+            />
+<BaseInput
+              v-model="item.guardian.occupation"
+              label="Occupation"
+              placeholder="Occupation"
+            />
+<BaseInput
+              v-model="item.guardian.nid_no"
+              label="Guardian NID"
+              placeholder="NID no"
+            />
+<BaseInput
               v-model="item.guardian.alternate_mobile"
               label="Alternate Mobile"
               placeholder="01XXXXXXXXX"
             />
-
-            <BaseInput
+<BaseInput
               v-model="item.guardian.email"
               label="Email"
               type="email"
               placeholder="guardian@email.com"
             />
-
-            <BaseInput
+<BaseInput
               v-model="item.guardian.monthly_income"
               label="Monthly Income"
               type="number"
               placeholder="Monthly income"
             />
-
-            <BaseInput
+<BaseInput
               v-model="item.guardian.address_line"
               label="Address"
               placeholder="Guardian address"
             />
-
-            <BaseInput
+<BaseInput
               v-model="item.guardian.photo_url"
               label="Photo URL"
               placeholder="/uploads/guardians/photo.jpg"
             />
-
-            <BaseSelect
+<BaseSelect
               v-model="item.guardian.status"
               label="Guardian Status"
               :options="activeStatusOptions"
-            />
-          </div>
-
-          <div class="checkbox-row">
+            /></div><div class="checkbox-row">
             <label>
               <input v-model="item.is_primary" type="checkbox" />
               Primary Guardian
@@ -425,12 +421,12 @@
               Emergency Contact
             </label>
           </div>
-        </div>
+        </details></div>
       </section>
 
       <!-- ================= ADDRESS INFO ================= -->
-      <section class="form-section">
-        <div class="section-header">
+      <details class="entry-section extra-details"><summary>Student Address (optional)</summary>
+        <div class="entry-section-heading">
           <h3>Student Address</h3>
           <p>Present and permanent address</p>
         </div>
@@ -438,13 +434,13 @@
         <div
           v-for="(address, index) in form.addresses"
           :key="address.address_type"
-          class="repeat-card"
+          class="entry-repeat"
         >
           <div class="repeat-header">
             <h4>{{ address.address_type }} Address</h4>
           </div>
 
-          <div class="form-grid">
+          <div class="entry-grid">
             <BaseInput
               v-model="address.village_road"
               label="Village / Road"
@@ -497,11 +493,11 @@
             Copy Present Address to Permanent
           </button>
         </div>
-      </section>
+      </details>
 
       <!-- ================= DOCUMENTS ================= -->
-      <section class="form-section">
-        <div class="section-header with-action">
+      <details class="entry-section extra-details"><summary>Documents (optional)</summary>
+        <div class="entry-section-heading with-action">
           <div>
             <h3>Documents</h3>
             <p>Birth certificate, photo, TC, marksheet etc.</p>
@@ -515,7 +511,7 @@
         <div
           v-for="(doc, index) in form.documents"
           :key="index"
-          class="repeat-card"
+          class="entry-repeat"
         >
           <div class="repeat-header">
             <h4>Document {{ index + 1 }}</h4>
@@ -529,7 +525,7 @@
             </button>
           </div>
 
-          <div class="form-grid">
+          <div class="entry-grid">
             <BaseSelect
               v-model="doc.document_type"
               label="Document Type"
@@ -577,20 +573,20 @@
             />
           </div>
         </div>
-      </section>
+      </details>
 
       <!-- ================= ACTIONS ================= -->
-      <div class="form-actions">
+      <div class="form-actions"><span class="save-note">Review the details before saving.</span>
         <BaseButton type="button" variant="secondary" @click="goBack">
           Back
         </BaseButton>
 
-        <BaseButton type="submit" :loading="loading">
-          Update Student Admission
+        <BaseButton type="submit" :loading="loading" :disabled="subjectsBusy">
+          Save changes
         </BaseButton>
       </div>
     </form>
-  </BaseCard>
+  </div>
 </template>
 
 <script setup>
@@ -598,7 +594,8 @@ import { reactive, ref, watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api, { getFileUrl } from "../../services/api";
 
-import BaseCard from "../common/BaseCard.vue";
+import StudentSubjectPicker from "./StudentSubjectPicker.vue";
+
 import BaseInput from "../common/BaseInput.vue";
 import BaseSelect from "../common/BaseSelect.vue";
 import BaseDatePicker from "../common/BaseDatePicker.vue";
@@ -726,6 +723,7 @@ const emptyDocument = () => ({
 });
 
 const defaultForm = () => ({
+  subject_ids: [],
   student: {
     student_id: studentId,
     institution_id: "",
@@ -806,6 +804,8 @@ const defaultForm = () => ({
 });
 
 const form = reactive(defaultForm());
+const requiresGroup = ref(false);
+const subjectsBusy = ref(false);
 
 const getRows = (response) => {
   const data = response?.data ?? response;
@@ -1096,6 +1096,7 @@ const loadStudentForEdit = async () => {
       end_date: normalizeDate(enrollment.end_date)
     });
 
+    form.subject_ids = (data.subjects || []).map(({ subject_id, paper_no, assignment_type }) => ({ subject_id, paper_no: Number(paper_no || 0), assignment_type }));
     await Promise.all([loadBatches(), loadSections()]);
 
     form.guardians.splice(
@@ -1173,6 +1174,16 @@ const loadStudentForEdit = async () => {
   }
 };
 
+watch(() => [form.student.institution_id, form.enrollment.class_id], () => {
+    if (isFillingEditData.value) return;
+    form.enrollment.group_id = "";
+    form.subject_ids = [];
+}, { flush: 'sync' });
+watch(() => form.enrollment.group_id, () => {
+    if (isFillingEditData.value) return;
+    form.subject_ids = [];
+}, { flush: 'sync' });
+
 const addGuardian = () => {
   form.guardians.push(emptyGuardian());
 };
@@ -1238,6 +1249,8 @@ const validateForm = () => {
   if (!form.admission.academic_year_id) return "Academic Year is required";
   if (!form.enrollment.batch_id) return "Batch is required";
   if (!form.enrollment.class_id) return "Class is required";
+  if (subjectsBusy.value) return "Wait for subjects to load, or retry loading subjects.";
+  if (requiresGroup.value && !form.enrollment.group_id) return "Group is required for Class 9, Class 10 and HSC";
 
   const hasGuardian = form.guardians.some(
     (item) => item.guardian.guardian_name && item.relation_type
@@ -1248,42 +1261,9 @@ const validateForm = () => {
   return "";
 };
 
-// const buildPayload = () => {
-//   return {
-//     student: {
-//       ...form.student,
-//       student_id: studentId
-//     },
-
-//     admission: {
-//       ...form.admission
-//     },
-
-//     enrollment: {
-//       ...form.enrollment,
-//       branch_id: form.admission.branch_id,
-//       academic_year_id: form.admission.academic_year_id
-//     },
-
-//     guardians: form.guardians.map((item) => ({
-//       relation_type: item.relation_type,
-//       is_primary: item.is_primary,
-//       is_emergency_contact: item.is_emergency_contact,
-//       guardian: {
-//         ...item.guardian,
-//         institution_id: form.student.institution_id
-//       }
-//     })),
-
-//     addresses: form.addresses,
-
-//     documents: form.documents.filter(
-//       (doc) => doc.document_type || doc.document_title || doc.file_url
-//     )
-//   };
-// };
 const buildPayload = () => {
   return {
+    subject_ids: form.subject_ids,
     student: {
       ...form.student,
       student_id: studentId,
@@ -1313,7 +1293,7 @@ const buildPayload = () => {
       }
     })),
 
-    addresses: form.addresses,
+    addresses: form.addresses.filter(address => address.village_road || address.post_office || address.thana_upazila || address.district || address.division || address.postal_code),
 
     documents: form.documents.filter(
       (doc) => doc.document_type || doc.document_title || doc.file_url
@@ -1566,12 +1546,6 @@ onMounted(async () => {
   cursor: pointer;
 }
 
-.admission-form {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
 .loading-area {
   min-height: 220px;
   display: grid;
@@ -1580,71 +1554,9 @@ onMounted(async () => {
   color: #64748b;
 }
 
-.form-section {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
-  padding: 22px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
-}
-
-.section-header {
-  margin-bottom: 18px;
-  border-bottom: 1px solid #eef2f7;
-  padding-bottom: 14px;
-}
-
-.section-header h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.section-header p {
-  margin: 4px 0 0;
-  color: #64748b;
-  font-size: 14px;
-}
-
-.with-action {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.repeat-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 18px;
-  margin-bottom: 16px;
-}
-
-.repeat-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-
-.repeat-header h4 {
-  margin: 0;
-  color: #1e293b;
-  font-size: 15px;
-  font-weight: 700;
-}
-
 .checkbox-row {
   display: flex;
-  gap: 24px;
+  gap: 14px;
   margin-top: 16px;
   color: #334155;
   font-size: 14px;
@@ -1670,31 +1582,6 @@ onMounted(async () => {
   margin-top: 12px;
 }
 
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding-top: 8px;
-}
-
-@media (max-width: 1100px) {
-  .form-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 700px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .with-action {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-}
 </style>
+
+<style scoped src="./studentEntry.css"></style>

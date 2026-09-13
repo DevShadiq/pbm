@@ -1,154 +1,72 @@
 <template>
   <BaseCard class="student-profile-card">
     <div class="profile-actions no-print">
-      <BaseButton type="button" variant="secondary" @click="$emit('back')">
-        Back
-      </BaseButton>
-
+      <BaseButton type="button" variant="secondary" @click="$emit('back')">Back</BaseButton>
       <div class="right-actions">
-        <BaseButton type="button" variant="secondary" @click="$emit('edit')">
-          Edit
-        </BaseButton>
-
-        <BaseButton type="button" @click="$emit('print')">
-          Print Profile
-        </BaseButton>
+        <BaseButton type="button" variant="secondary" @click="$emit('edit')">Edit student</BaseButton>
+        <BaseButton type="button" @click="$emit('print')">Print</BaseButton>
       </div>
     </div>
-
     <div id="student-profile-print" class="profile-report">
-      <!-- ================= REPORT HEADER ================= -->
-      <div class="report-header">
-        <div class="school-info">
-          <h1>{{ institutionName }}</h1>
-          <p>{{ branchName }}</p>
-          <p>Student Profile / Admission Report</p>
-        </div>
-
-        <div class="student-photo">
-          <img
-            v-if="student.photo_url"
-            :src="getFileUrl(student.photo_url)"
-            alt="Student Photo"
-          />
-          <span v-else>{{ initials }}</span>
-        </div>
-        
-      </div>
-
-      <!-- ================= STUDENT SUMMARY ================= -->
-      <section class="summary-section">
-        <div>
-          <h2>{{ fullName }}</h2>
-          <p>
-            Student No:
-            <strong>{{ value(student.student_no) }}</strong>
-          </p>
-          <p>
-            Admission No:
-            <strong>{{ value(student.admission_no) }}</strong>
-          </p>
-        </div>
-
-        <div class="status-box">
-          <span>Status</span>
-          <strong>{{ value(student.status) }}</strong>
-        </div>
-      </section>
-
-      <!-- ================= BASIC INFO ================= -->
+      <header class="compact-header">
+        <div class="student-photo"><img v-if="student.photo_url" :src="getFileUrl(student.photo_url)" alt="Student photo" /><span v-else>{{ initials }}</span></div>
+        <div class="student-heading"><h2>{{ fullName }}</h2><p>{{ student.student_no }} · {{ institutionName }}</p></div>
+        <span class="compact-status">{{ student.status }}</span>
+      </header>
       <section class="report-section">
-        <h3>Student Information</h3>
-
-        <div class="info-grid">
-          <InfoItem label="Student No" :value="student.student_no" />
-          <InfoItem label="Admission No" :value="student.admission_no" />
-          <InfoItem label="Registration No" :value="student.registration_no" />
-          <InfoItem label="First Name" :value="student.first_name" />
-          <InfoItem label="Last Name" :value="student.last_name" />
-          <InfoItem label="Gender" :value="student.gender" />
-          <InfoItem label="Date of Birth" :value="formatDate(student.date_of_birth)" />
-          <InfoItem label="Birth Certificate No" :value="student.birth_certificate_no" />
-          <InfoItem label="NID No" :value="student.nid_no" />
-          <InfoItem label="Blood Group" :value="student.blood_group" />
-          <InfoItem label="Religion" :value="student.religion" />
-          <InfoItem label="Nationality" :value="student.nationality" />
-          <InfoItem label="Mobile" :value="student.mobile" />
-          <InfoItem label="Email" :value="student.email" />
-        </div>
-      </section>
-
-      <!-- ================= ADMISSION INFO ================= -->
-      <section class="report-section">
-        <h3>Admission Information</h3>
-
-        <div class="info-grid">
-          <InfoItem label="Branch" :value="branchName" />
-          <InfoItem label="Academic Year" :value="academicYearName" />
-          <InfoItem label="Admission Date" :value="formatDate(admission.admission_date)" />
-          <InfoItem label="Admission Type" :value="admission.admission_type" />
-          <InfoItem label="Approval Status" :value="admission.approval_status" />
-          <InfoItem label="Previous Institute" :value="admission.previous_institute" />
-          <InfoItem label="Previous Class" :value="admission.previous_class" />
-          <InfoItem label="Remarks" :value="admission.remarks" />
-        </div>
-      </section>
-
-      <!-- ================= ACADEMIC INFO ================= -->
-      <section class="report-section">
-        <h3>Academic Enrollment</h3>
-
         <div class="info-grid">
           <InfoItem label="Class" :value="className" />
-          <InfoItem label="Batch" :value="batchName" />
-          <InfoItem label="Group" :value="groupName" />
+          <InfoItem v-if="enrollment.group_id" label="Group" :value="groupName" />
+          <InfoItem label="Roll" :value="enrollment.roll_no" />
           <InfoItem label="Section" :value="sectionName" />
-          <InfoItem label="Medium" :value="mediumName" />
-          <InfoItem label="Shift" :value="shiftName" />
-          <InfoItem label="Roll No" :value="enrollment.roll_no" />
-          <InfoItem label="Enrollment Status" :value="enrollment.enrollment_status" />
-          <InfoItem label="Start Date" :value="formatDate(enrollment.start_date)" />
-          <InfoItem label="End Date" :value="formatDate(enrollment.end_date)" />
+          <InfoItem label="Academic year" :value="academicYearName" />
+          <InfoItem label="Batch" :value="batchName" />
+          <InfoItem label="Branch" :value="branchName" />
+          <InfoItem label="Mobile" :value="student.mobile" />
         </div>
       </section>
-
-      <!-- ================= GUARDIAN INFO ================= -->
+      <section v-if="guardians.length" class="report-section">
+        <h3>Guardian contact</h3>
+        <div v-for="(item, index) in guardians" :key="index" class="info-grid guardian-contact">
+          <InfoItem :label="(item.relation_type || 'Guardian').replaceAll('_', ' ')" :value="guardianValue(item, 'guardian_name')" />
+          <InfoItem label="Mobile" :value="guardianValue(item, 'mobile')" />
+          <InfoItem label="Address" :value="guardianValue(item, 'address_line')" />
+        </div>
+      </section>
       <section class="report-section">
-        <h3>Guardian Information</h3>
-
-        <div v-if="guardians.length" class="guardian-list">
-          <div
-            v-for="(item, index) in guardians"
-            :key="index"
-            class="sub-card"
-          >
-            <div class="sub-card-title">
-              <strong>Guardian {{ index + 1 }}</strong>
-              <span>{{ value(item.relation_type) }}</span>
-            </div>
-
-            <div class="info-grid">
-              <InfoItem label="Guardian Name" :value="guardianValue(item, 'guardian_name')" />
-              <InfoItem label="Relation Name" :value="guardianValue(item, 'relation_name')" />
-              <InfoItem label="Occupation" :value="guardianValue(item, 'occupation')" />
-              <InfoItem label="NID No" :value="guardianValue(item, 'nid_no')" />
-              <InfoItem label="Mobile" :value="guardianValue(item, 'mobile')" />
-              <InfoItem label="Alternate Mobile" :value="guardianValue(item, 'alternate_mobile')" />
-              <InfoItem label="Email" :value="guardianValue(item, 'email')" />
-              <InfoItem label="Monthly Income" :value="guardianValue(item, 'monthly_income')" />
-              <InfoItem label="Address" :value="guardianValue(item, 'address_line')" />
-              <InfoItem label="Primary Guardian" :value="item.is_primary ? 'Yes' : 'No'" />
-              <InfoItem label="Emergency Contact" :value="item.is_emergency_contact ? 'Yes' : 'No'" />
-              <InfoItem label="Status" :value="guardianValue(item, 'status')" />
-            </div>
+        <h3>Assigned subjects <span class="subject-count">{{ subjects.length }} {{ subjects.length === 1 ? 'paper' : 'papers' }}</span></h3>
+        <div v-if="subjects.length" class="subject-list">
+          <div v-for="subject in subjects" :key="`${subject.subject_id}:${subject.paper_no}`" class="subject-chip">
+            <b>{{ subject.subject_name }}{{ Number(subject.paper_no) ? ` · Paper ${subject.paper_no}` : '' }}</b>
+            <small>{{ ({ MANDATORY: 'Required', OPTIONAL: 'Optional', FOURTH_SUBJECT: '4th subject' })[subject.assignment_type] }}</small>
           </div>
         </div>
-
-        <div v-else class="empty-text">
-          No guardian information found.
-        </div>
+        <p v-else class="empty-text">No subjects assigned. Edit the student to choose a group and save subjects.</p>
       </section>
-
+      <details class="profile-details">
+        <summary>More profile details</summary>
+        <section class="report-section">
+          <h3>Personal & admission details</h3>
+          <div class="info-grid">
+            <InfoItem label="Admission no" :value="student.admission_no" />
+            <InfoItem label="Registration no" :value="student.registration_no" />
+            <InfoItem label="Gender" :value="student.gender" />
+            <InfoItem label="Date of birth" :value="formatDate(student.date_of_birth)" />
+            <InfoItem label="Birth certificate" :value="student.birth_certificate_no" />
+            <InfoItem label="NID" :value="student.nid_no" />
+            <InfoItem label="Blood group" :value="student.blood_group" />
+            <InfoItem label="Religion" :value="student.religion" />
+            <InfoItem label="Nationality" :value="student.nationality" />
+            <InfoItem label="Email" :value="student.email" />
+            <InfoItem label="Admission date" :value="formatDate(admission.admission_date)" />
+            <InfoItem label="Approval" :value="admission.approval_status" />
+            <InfoItem label="Previous institute" :value="admission.previous_institute" />
+            <InfoItem label="Previous class" :value="admission.previous_class" />
+            <InfoItem label="Remarks" :value="admission.remarks" />
+            <InfoItem label="Medium" :value="mediumName" />
+            <InfoItem label="Shift" :value="shiftName" />
+          </div>
+        </section>
       <!-- ================= ADDRESS INFO ================= -->
       <section class="report-section">
         <h3>Student Address</h3>
@@ -227,27 +145,10 @@
         </div>
       </section>
 
-      <!-- ================= SIGNATURE ================= -->
-      <section class="signature-section">
-        <div>
-          <span></span>
-          <p>Guardian Signature</p>
-        </div>
-
-        <div>
-          <span></span>
-          <p>Class Teacher</p>
-        </div>
-
-        <div>
-          <span></span>
-          <p>Principal / Admin</p>
-        </div>
-      </section>
+      </details>
     </div>
   </BaseCard>
 </template>
-
 <script setup>
 import { computed, defineComponent, h } from "vue";
 
@@ -291,7 +192,7 @@ const InfoItem = defineComponent({
     });
 
     return () =>
-      h("div", { class: "info-item" }, [
+      displayValue.value === "N/A" ? null : h("div", { class: "info-item" }, [
         h("span", itemProps.label),
         h("strong", displayValue.value)
       ]);
@@ -309,6 +210,7 @@ const guardians = computed(() =>
 const addresses = computed(() =>
   Array.isArray(data.value.addresses) ? data.value.addresses : []
 );
+const subjects = computed(() => data.value.subjects || []);
 const documents = computed(() =>
   Array.isArray(data.value.documents) ? data.value.documents : []
 );
@@ -415,336 +317,7 @@ function fullAddress(address) {
 </script>
 
 <style scoped>
-.student-profile-card {
-  padding: 24px;
-  border-radius: 24px;
-}
-
-.profile-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.right-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.profile-report {
-  background: #ffffff;
-  color: #0f172a;
-}
-
-.report-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 24px;
-  border: 1px solid #e2e8f0;
-  border-radius: 18px;
-  background: linear-gradient(135deg, #f8fafc, #eef2ff);
-}
-
-.school-info h1 {
-  margin: 0;
-  font-size: 26px;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.school-info p {
-  margin: 6px 0 0;
-  color: #475569;
-  font-size: 14px;
-}
-
-.student-photo {
-  width: 120px;
-  height: 135px;
-  border-radius: 16px;
-  border: 2px solid #cbd5e1;
-  overflow: hidden;
-  background: #eff6ff;
-  display: grid;
-  place-items: center;
-  color: #2563eb;
-  font-size: 32px;
-  font-weight: 800;
-}
-
-.student-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.summary-section {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  margin-top: 18px;
-  padding: 22px;
-  border-radius: 18px;
-  background: #0f172a;
-  color: #ffffff;
-}
-
-.summary-section h2 {
-  margin: 0;
-  font-size: 24px;
-}
-
-.summary-section p {
-  margin: 7px 0 0;
-  color: #cbd5e1;
-}
-
-.status-box {
-  min-width: 150px;
-  padding: 16px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.12);
-  text-align: center;
-}
-
-.status-box span {
-  display: block;
-  color: #cbd5e1;
-  font-size: 13px;
-}
-
-.status-box strong {
-  display: block;
-  margin-top: 6px;
-  font-size: 18px;
-}
-
-.report-section {
-  margin-top: 18px;
-  padding: 22px;
-  border: 1px solid #e2e8f0;
-  border-radius: 18px;
-  background: #ffffff;
-}
-
-.report-section h3 {
-  margin: 0 0 16px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e2e8f0;
-  color: #0f172a;
-  font-size: 18px;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.info-grid.two-col {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.info-item {
-  padding: 12px;
-  border-radius: 12px;
-  background: #f8fafc;
-  border: 1px solid #edf2f7;
-}
-
-.info-item span {
-  display: block;
-  color: #64748b;
-  font-size: 12px;
-  margin-bottom: 4px;
-}
-
-.info-item strong {
-  display: block;
-  color: #0f172a;
-  font-size: 14px;
-  word-break: break-word;
-}
-
-.guardian-list,
-.address-grid {
-  display: grid;
-  gap: 14px;
-}
-
-.sub-card {
-  padding: 16px;
-  border-radius: 16px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-}
-
-.sub-card-title {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-  color: #0f172a;
-}
-
-.sub-card-title span {
-  color: #2563eb;
-  font-weight: 700;
-}
-
-.address-line {
-  margin: 0 0 12px;
-  color: #334155;
-  line-height: 1.6;
-}
-
-.document-table {
-  overflow-x: auto;
-}
-
-.document-table table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.document-table th,
-.document-table td {
-  padding: 12px;
-  border: 1px solid #e2e8f0;
-  text-align: left;
-  font-size: 14px;
-}
-
-.document-table th {
-  background: #f8fafc;
-  color: #475569;
-  text-transform: uppercase;
-  font-size: 12px;
-}
-
-.doc-link {
-  color: #2563eb;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.empty-text {
-  padding: 18px;
-  border-radius: 14px;
-  background: #f8fafc;
-  color: #64748b;
-  text-align: center;
-}
-
-.signature-section {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-top: 55px;
-  padding: 0 22px 22px;
-}
-
-.signature-section div {
-  text-align: center;
-}
-
-.signature-section span {
-  display: block;
-  height: 1px;
-  background: #0f172a;
-  margin-bottom: 8px;
-}
-
-.signature-section p {
-  margin: 0;
-  color: #334155;
-  font-weight: 700;
-}
-
-@media (max-width: 1100px) {
-  .info-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 700px) {
-  .profile-actions,
-  .summary-section,
-  .report-header {
-    flex-direction: column;
-  }
-
-  .right-actions {
-    width: 100%;
-  }
-
-  .info-grid,
-  .info-grid.two-col,
-  .signature-section {
-    grid-template-columns: 1fr;
-  }
-
-  .student-photo {
-    width: 100px;
-    height: 115px;
-  }
-}
-
-@media print {
-  .no-print {
-    display: none !important;
-  }
-
-  .student-profile-card {
-    padding: 0 !important;
-    box-shadow: none !important;
-    border: none !important;
-  }
-
-  .profile-report {
-    padding: 0;
-  }
-
-  .report-header,
-  .summary-section,
-  .report-section,
-  .sub-card,
-  .info-item {
-    box-shadow: none !important;
-    break-inside: avoid;
-  }
-
-  .report-section {
-    page-break-inside: avoid;
-  }
-
-  .summary-section {
-    background: #ffffff !important;
-    color: #0f172a !important;
-    border: 1px solid #0f172a;
-  }
-
-  .summary-section p,
-  .status-box span {
-    color: #334155 !important;
-  }
-
-  .status-box {
-    background: #ffffff !important;
-    border: 1px solid #0f172a;
-  }
-
-  a {
-    color: #0f172a !important;
-    text-decoration: none !important;
-  }
-
-  @page {
-    size: A4;
-    margin: 12mm;
-  }
-}
+.student-profile-card{max-width:1000px;margin:0 auto;padding:18px}.profile-actions,.right-actions{display:flex;justify-content:space-between;gap:10px}.profile-actions{margin-bottom:18px}.compact-header{display:flex;align-items:center;gap:14px;padding-bottom:16px}.student-heading{flex:1;min-width:0}.student-heading h2{margin:0;font-size:22px;color:#0f172a}.student-heading p{margin:5px 0 0;color:#64748b;font-size:13px}.student-photo{width:62px;height:70px;flex-shrink:0;border-radius:10px;overflow:hidden;display:grid;place-items:center;background:#eef2ff;color:#4f46e5;font-weight:700;font-size:22px}.student-photo img{width:100%;height:100%;object-fit:cover}.compact-status{padding:5px 9px;border-radius:6px;background:#ecfdf5;color:#047857;font-size:12px}.report-section{padding:16px 0;border-top:1px solid #e2e8f0}.report-section h3{margin:0 0 12px;font-size:14px;color:#334155}.info-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.guardian-contact+.guardian-contact{margin-top:12px}:deep(.info-item){display:flex;flex-direction:column;gap:4px;min-width:0}:deep(.info-item span){font-size:12px;color:#64748b}:deep(.info-item strong){font-size:14px;font-weight:600;color:#1e293b;overflow-wrap:anywhere}.subject-count{font-weight:400;color:#64748b;margin-left:8px}.subject-list{display:flex;flex-wrap:wrap;gap:8px}.subject-chip{border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;background:#f8fafc}.subject-chip b{display:block;font-size:13px;color:#334155}.subject-chip small{font-size:11px;color:#64748b}.profile-details{border-top:1px solid #e2e8f0;padding-top:14px}.profile-details summary{font-size:13px;color:#475569;cursor:pointer}.profile-details[open] summary{margin-bottom:14px}.empty-text,.address-line{font-size:13px;color:#64748b}.address-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.sub-card-title{font-size:13px}.document-table{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px;text-align:left;border-bottom:1px solid #e2e8f0}a{color:#4f46e5}
+@media(max-width:640px){.info-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.address-grid{grid-template-columns:1fr}.student-heading h2{font-size:18px}.compact-header{flex-wrap:wrap}}
+@media print{.no-print{display:none!important}.student-profile-card{max-width:none;padding:0}.report-section{break-inside:avoid}.profile-details:not([open]){display:none}}
 </style>

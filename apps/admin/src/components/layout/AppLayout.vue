@@ -21,9 +21,9 @@
       <main class="page-content">
         <Breadcrumb />
 
-        <PageTitle />
+        <PageTitle v-if="!route.meta.hidePageTitle" />
 
-        <section class="content-card">
+        <section :class="route.meta.flatContent ? 'content-flat' : 'content-card'">
           <RouterView />
         </section>
       </main>
@@ -37,6 +37,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRoute } from 'vue-router'
 import SidebarMenu from './SidebarMenu.vue'
 import HeaderBar from './HeaderBar.vue'
 import FooterBar from './FooterBar.vue'
@@ -45,6 +46,7 @@ import PageTitle from './PageTitle.vue'
 
 const isSidebarCollapsed = ref(false)
 const isMobileSidebarOpen = ref(false)
+const route = useRoute()
 
 const toggleSidebar = () => {
   if (window.innerWidth <= 900) {
@@ -81,6 +83,8 @@ const toggleSidebar = () => {
   flex: 1;
   padding: 22px;
 }
+
+.content-flat { min-width: 0; }
 
 .content-card {
   background: #ffffff;

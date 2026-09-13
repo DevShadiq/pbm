@@ -159,6 +159,7 @@ function normalizeProfile(data) {
       end_date: data.end_date
     },
 
+    subjects: Array.isArray(data.subjects) ? data.subjects : [],
     guardians: Array.isArray(data.guardians) ? data.guardians : [],
     addresses: Array.isArray(data.addresses) ? data.addresses : [],
     documents: Array.isArray(data.documents) ? data.documents : []
