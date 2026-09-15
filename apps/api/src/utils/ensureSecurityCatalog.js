@@ -49,6 +49,59 @@ async function ensureUserRolesTableShape() {
   );
 }
 
+// These product-owned menus are safe to synchronize on every startup even when
+// the broader security-catalog sync is disabled to preserve user-created menus.
+export async function ensureSchoolManagementMenus() {
+  await pool.query(`INSERT INTO sms.menus
+    (parent_menu_id,menu_code,menu_title,route_path,icon_name,sort_order,is_visible,status)
+    VALUES (NULL,'master-data','Academic Master Setup','#','settings',20,TRUE,'ACTIVE')
+    ON DUPLICATE KEY UPDATE menu_title=VALUES(menu_title),route_path=VALUES(route_path),icon_name=VALUES(icon_name),sort_order=VALUES(sort_order),is_visible=TRUE,status='ACTIVE'`);
+  const academicParent = (await pool.query("SELECT menu_id FROM sms.menus WHERE menu_code='master-data' LIMIT 1")).rows[0]?.menu_id;
+  const academicMenus = [
+    ['ACADEMIC_MASTER_DATA', 'Class & Master Entry', '/master-data', 'settings', 1],
+    ['EXAM_SUBJECT_ENTRY', 'Subject Master', '/exams/subjects', 'book', 2],
+    ['EXAM_CLASS_SUBJECTS', 'Class Subject & Exam Method', '/exams/class-subjects', 'book', 3],
+  ];
+  for (const [code, title, route, icon, order] of academicMenus) {
+    await pool.query(`INSERT INTO sms.menus
+      (parent_menu_id,menu_code,menu_title,route_path,icon_name,sort_order,is_visible,status)
+      VALUES ($1,$2,$3,$4,$5,$6,TRUE,'ACTIVE')
+      ON DUPLICATE KEY UPDATE parent_menu_id=VALUES(parent_menu_id),menu_title=VALUES(menu_title),route_path=VALUES(route_path),icon_name=VALUES(icon_name),sort_order=VALUES(sort_order),is_visible=TRUE,status='ACTIVE'`,
+    [academicParent, code, title, route, icon, order]);
+  }
+
+  await pool.query(`INSERT INTO sms.menus
+    (parent_menu_id,menu_code,menu_title,route_path,icon_name,sort_order,is_visible,status)
+    VALUES (NULL,'EXAM_MANAGEMENT','Exam & Results','#','exam',55,TRUE,'ACTIVE')
+    ON DUPLICATE KEY UPDATE menu_title=VALUES(menu_title),route_path=VALUES(route_path),icon_name=VALUES(icon_name),sort_order=VALUES(sort_order),is_visible=TRUE,status='ACTIVE'`);
+  const examParent = (await pool.query("SELECT menu_id FROM sms.menus WHERE menu_code='EXAM_MANAGEMENT' LIMIT 1")).rows[0]?.menu_id;
+  const examMenus = [
+    ['EXAM_DASHBOARD', 'Exam Dashboard', '/exams', 'exam', 1],
+    ['EXAM_SETUP', 'Exam Setup', '/exams/setup', 'settings', 2],
+    ['EXAM_ROUTINE', 'Routine & Seating', '/exams/routine', 'clock', 3],
+    ['EXAM_CANDIDATES', 'Candidates & Admit Cards', '/exams/candidates', 'students', 4],
+    ['EXAM_MARKS', 'Fast Marks Entry', '/exams/marks', 'exam', 5],
+    ['EXAM_RESULTS', 'Full Result Sheet', '/exams/results', 'report', 6],
+    ['EXAM_DOCUMENTS', 'Marksheet & Certificates', '/exams/documents', 'report', 7],
+    ['EXAM_REPORTS', 'Exam Reports', '/exams/reports', 'report', 8],
+  ];
+  for (const [code, title, route, icon, order] of examMenus) {
+    await pool.query(`INSERT INTO sms.menus
+      (parent_menu_id,menu_code,menu_title,route_path,icon_name,sort_order,is_visible,status)
+      VALUES ($1,$2,$3,$4,$5,$6,TRUE,'ACTIVE')
+      ON DUPLICATE KEY UPDATE parent_menu_id=VALUES(parent_menu_id),menu_title=VALUES(menu_title),route_path=VALUES(route_path),icon_name=VALUES(icon_name),sort_order=VALUES(sort_order),is_visible=TRUE,status='ACTIVE'`,
+    [examParent, code, title, route, icon, order]);
+  }
+
+  const managedCodes = ['master-data', 'ACADEMIC_MASTER_DATA', ...academicMenus.slice(1).map(([code]) => code), 'EXAM_MANAGEMENT', ...examMenus.map(([code]) => code)];
+  const placeholders = managedCodes.map((_, index) => `$${index + 1}`).join(',');
+  await pool.query(`INSERT INTO sms.role_menus (role_id,menu_id,can_access)
+    SELECT r.role_id,m.menu_id,TRUE
+    FROM sms.roles r JOIN sms.menus m ON m.menu_code IN (${placeholders})
+    LEFT JOIN sms.role_menus rm ON rm.role_id=r.role_id AND rm.menu_id=m.menu_id
+    WHERE r.role_code IN ('ADMIN','SUPER_ADMIN') AND rm.menu_id IS NULL`, managedCodes);
+}
+
 export async function ensureSecurityCatalog() {
   await ensureUserRolesTableShape();
 
@@ -65,6 +118,28 @@ export async function ensureSecurityCatalog() {
       is_visible = VALUES(is_visible),
       status = VALUES(status)
   `);
+
+  // Keep class and subject configuration together in the master setup module.
+  // Existing deployments have a single top-level `master-data` link; convert it
+  // into an accordion parent without changing its stable menu code/permissions.
+  await pool.query(`
+    INSERT INTO sms.menus
+      (parent_menu_id, menu_code, menu_title, route_path, icon_name, sort_order, is_visible, status)
+    VALUES (NULL, 'master-data', 'Academic Master Setup', '#', 'settings', 20, TRUE, 'ACTIVE')
+    ON DUPLICATE KEY UPDATE menu_title=VALUES(menu_title), route_path=VALUES(route_path), icon_name=VALUES(icon_name), sort_order=VALUES(sort_order), is_visible=TRUE, status='ACTIVE'
+  `);
+  const academicParentResult = await pool.query("SELECT menu_id FROM sms.menus WHERE menu_code = 'master-data' LIMIT 1");
+  const academicParentId = academicParentResult.rows[0]?.menu_id;
+  const academicMenus = [
+    ['ACADEMIC_MASTER_DATA', 'Class & Master Entry', '/master-data', 'settings', 1],
+    ['EXAM_SUBJECT_ENTRY', 'Subject Master', '/exams/subjects', 'book', 2],
+    ['EXAM_CLASS_SUBJECTS', 'Class Subject & Exam Method', '/exams/class-subjects', 'book', 3],
+  ];
+  for (const [menuCode, menuTitle, routePath, iconName, sortOrder] of academicMenus) {
+    await pool.query(`INSERT INTO sms.menus (parent_menu_id,menu_code,menu_title,route_path,icon_name,sort_order,is_visible,status)
+      VALUES ($1,$2,$3,$4,$5,$6,TRUE,'ACTIVE')
+      ON DUPLICATE KEY UPDATE parent_menu_id=VALUES(parent_menu_id),menu_title=VALUES(menu_title),route_path=VALUES(route_path),icon_name=VALUES(icon_name),sort_order=VALUES(sort_order),is_visible=TRUE,status='ACTIVE'`, [academicParentId, menuCode, menuTitle, routePath, iconName, sortOrder]);
+  }
 
   await pool.query(`
     INSERT INTO sms.menus
@@ -99,16 +174,14 @@ export async function ensureSecurityCatalog() {
   const examParentResult = await pool.query("SELECT menu_id FROM sms.menus WHERE menu_code = 'EXAM_MANAGEMENT' LIMIT 1");
   const examParentId = examParentResult.rows[0]?.menu_id;
   const examMenus = [
-    ['EXAM_SUBJECT_ENTRY', 'Subject Entry', '/exams/subjects', 'book', 1],
-    ['EXAM_CLASS_SUBJECTS', 'Class-wise Subjects', '/exams/class-subjects', 'book', 2],
-    ['EXAM_SETUP', 'Exam Setup', '/exams/setup', 'settings', 3],
-    ['EXAM_DASHBOARD', 'Exam Dashboard', '/exams', 'exam', 4],
-    ['EXAM_ROUTINE', 'Routine & Seating', '/exams/routine', 'clock', 5],
-    ['EXAM_CANDIDATES', 'Candidates & Admit Cards', '/exams/candidates', 'students', 6],
-    ['EXAM_MARKS', 'Marks Entry & Verification', '/exams/marks', 'exam', 7],
-    ['EXAM_RESULTS', 'Results & Merit List', '/exams/results', 'report', 8],
-    ['EXAM_DOCUMENTS', 'Marksheet & Transcript', '/exams/documents', 'report', 9],
-    ['EXAM_REPORTS', 'Exam Reports', '/exams/reports', 'report', 10],
+    ['EXAM_DASHBOARD', 'Exam Dashboard', '/exams', 'exam', 1],
+    ['EXAM_SETUP', 'Exam Setup', '/exams/setup', 'settings', 2],
+    ['EXAM_ROUTINE', 'Routine & Seating', '/exams/routine', 'clock', 3],
+    ['EXAM_CANDIDATES', 'Candidates & Admit Cards', '/exams/candidates', 'students', 4],
+    ['EXAM_MARKS', 'Fast Marks Entry', '/exams/marks', 'exam', 5],
+    ['EXAM_RESULTS', 'Full Result Sheet', '/exams/results', 'report', 6],
+    ['EXAM_DOCUMENTS', 'Marksheet & Certificates', '/exams/documents', 'report', 7],
+    ['EXAM_REPORTS', 'Exam Reports', '/exams/reports', 'report', 8],
   ];
   for (const [menuCode, menuTitle, routePath, iconName, sortOrder] of examMenus) {
     await pool.query(`INSERT INTO sms.menus (parent_menu_id,menu_code,menu_title,route_path,icon_name,sort_order,is_visible,status)

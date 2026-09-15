@@ -1,3 +1,4 @@
+import { studentCurriculum, saveStudentSubjects, getStudentSubjects } from '../utils/studentSubjects.js';
 import express from "express";
 import pool from "../config/db.js";
 import multer from "multer";
@@ -226,6 +227,7 @@ const toBool = (value) => value === true || value === "true";
 
 const handleDbError = (error, res) => {
   console.error("Student admission API error:", error);
+  if (error.status === 400) return res.status(400).json({ success: false, message: error.message });
 
   if (error.code === "23505") {
     return res.status(409).json({
@@ -262,6 +264,15 @@ const handleDbError = (error, res) => {
    CREATE FULL STUDENT ADMISSION
    POST /api/student-admissions/full
 ========================================================= */
+router.get("/subject-options", async (req, res) => {
+  try {
+    const { institution_id, class_id, group_id } = req.query;
+    if (!institution_id || !class_id) return res.status(400).json({ success: false, message: "Institution and class are required" });
+    const data = await studentCurriculum(pool, institution_id, class_id, group_id, false);
+    return res.json({ success: true, data });
+  } catch (error) { return handleDbError(error, res); }
+});
+
 router.post("/full", async (req, res) => {
   const client = await pool.connect();
 
@@ -302,6 +313,9 @@ router.post("/full", async (req, res) => {
     }
 
     await client.query("BEGIN");
+
+    const curriculum = await studentCurriculum(client, student.institution_id, enrollment.class_id, enrollment.group_id);
+    enrollment.group_id = curriculum.group_id;
 
     const createdBy = req.user?.user_id || null;
 
@@ -426,6 +440,8 @@ router.post("/full", async (req, res) => {
       toNull(enrollment.start_date),
       toNull(enrollment.end_date)
     ]);
+
+    await saveStudentSubjects(client, enrollmentResult.rows[0].enrollment_id, curriculum, req.body.subject_ids);
 
     await assignApplicableStructuresToEnrollment(client, {
       studentId,
@@ -619,9 +635,9 @@ router.get("/full/:studentId", async (req, res) => {
 
     const studentResult = await pool.query(
       `
-      SELECT *
-      FROM sms.students
-      WHERE student_id = $1
+      SELECT s.*,i.institution_name
+      FROM sms.students s JOIN sms.institutions i ON i.institution_id=s.institution_id
+      WHERE s.student_id = $1
       `,
       [studentId]
     );
@@ -647,10 +663,19 @@ router.get("/full/:studentId", async (req, res) => {
 
       pool.query(
       `
-      SELECT *
-      FROM sms.student_enrollments
-      WHERE student_id = $1
-      ORDER BY enrollment_id DESC
+      SELECT se.*,cl.class_name,cl.numeric_level,g.group_name,b.branch_name,
+        ay.year_name AS academic_year_name,ab.batch_name,sec.section_name,m.medium_name,sh.shift_name
+      FROM sms.student_enrollments se
+      LEFT JOIN sms.class_levels cl ON cl.class_id=se.class_id
+      LEFT JOIN sms.groups g ON g.group_id=se.group_id
+      LEFT JOIN sms.branches b ON b.branch_id=se.branch_id
+      LEFT JOIN sms.academic_years ay ON ay.academic_year_id=se.academic_year_id
+      LEFT JOIN sms.academic_batches ab ON ab.batch_id=se.batch_id
+      LEFT JOIN sms.sections sec ON sec.section_id=se.section_id
+      LEFT JOIN sms.mediums m ON m.medium_id=se.medium_id
+      LEFT JOIN sms.shifts sh ON sh.shift_id=se.shift_id
+      WHERE se.student_id = $1
+      ORDER BY se.enrollment_id DESC
       LIMIT 1
       `,
       [studentId]
@@ -694,9 +719,12 @@ router.get("/full/:studentId", async (req, res) => {
       ),
     ]);
 
+    const subjects = await getStudentSubjects(pool, enrollmentResult.rows[0]?.enrollment_id);
+
     return res.json({
       success: true,
       data: {
+        subjects,
         student: studentResult.rows[0],
         admission: admissionResult.rows[0] || null,
         enrollment: enrollmentResult.rows[0] || null,
@@ -778,6 +806,9 @@ router.put("/full/:studentId", async (req, res) => {
       await client.query("ROLLBACK");
       return res.status(404).json({ success: false, message: "Student not found" });
     }
+
+    const curriculum = await studentCurriculum(client, student.institution_id, enrollment.class_id, enrollment.group_id);
+    enrollment.group_id = curriculum.group_id;
 
     /* ================= STUDENT UPDATE ================= */
     const studentUpdateSql = `
@@ -971,6 +1002,8 @@ router.put("/full/:studentId", async (req, res) => {
       toNull(enrollment.start_date),
       toNull(enrollment.end_date)
     ]);
+
+    await saveStudentSubjects(client, enrollmentResult.rows[0].enrollment_id, curriculum, req.body.subject_ids);
 
     await assignApplicableStructuresToEnrollment(client, {
       studentId,

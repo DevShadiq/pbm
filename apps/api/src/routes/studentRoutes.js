@@ -1,3 +1,4 @@
+import { studentCurriculum, saveStudentSubjects } from '../utils/studentSubjects.js';
 import express from "express";
 import multer from "multer";
 import fs from "fs";
@@ -383,6 +384,8 @@ router.post(
       }
 
       await client.query("BEGIN");
+      const curriculum = await studentCurriculum(client, student.institution_id, enrollment.class_id, enrollment.group_id);
+      enrollment.group_id = curriculum.group_id;
 
       const studentNo =
         student.student_no || generateStudentNo(student.institution_id);
@@ -526,6 +529,7 @@ router.post(
         ]
       );
 
+      await saveStudentSubjects(client, enrollmentResult.rows[0].enrollment_id, curriculum, payload.subject_ids);
       await assignApplicableStructuresToEnrollment(client, {
         studentId,
         enrollmentId: enrollmentResult.rows[0].enrollment_id,
@@ -765,9 +769,9 @@ router.post(
         });
       }
 
-      res.status(500).json({
+      res.status(error.status || 500).json({
         success: false,
-        message: "Failed to save student admission",
+        message: error.status === 400 ? error.message : "Failed to save student admission",
         error: error.message,
       });
     } finally {

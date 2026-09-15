@@ -26,13 +26,14 @@
             <span class="menu-arrow">{{ opened[menu.menu_code] ? "−" : "+" }}</span>
           </button>
 
-          <div v-show="opened[menu.menu_code] && !props.collapsed" class="submenu">
+          <div v-show="submenuVisible(menu.menu_code)" class="submenu">
             <RouterLink
               v-for="child in menu.children"
               :key="child.menu_id || child.menu_code"
               :to="child.route_path || '#'"
               class="menu-link"
               active-class="active"
+              @click="closeMobile"
             >
               <span class="menu-icon">
                 <MenuIcon :name="child.icon_name" :code="child.menu_code" :title="child.menu_title" />
@@ -47,6 +48,7 @@
           :to="menu.route_path || '#'"
           class="menu-link"
           active-class="active"
+          @click="closeMobile"
         >
           <span class="menu-icon">
             <MenuIcon :name="menu.icon_name" :code="menu.menu_code" :title="menu.menu_title" />
@@ -74,12 +76,31 @@ const props = defineProps({
     default: false,
   },
 });
+const emit = defineEmits(["close-mobile"]);
 
 const route = useRoute();
 const menus = ref([]);
 const opened = ref({});
 
 const fallbackMenus = [
+  {
+    menu_code: "DASHBOARD",
+    menu_title: "Dashboard",
+    route_path: "/dashboard",
+    icon_name: "dashboard",
+    children: [],
+  },
+  {
+    menu_code: "master-data",
+    menu_title: "Academic Master Setup",
+    route_path: "#",
+    icon_name: "settings",
+    children: [
+      { menu_code: "ACADEMIC_MASTER_DATA", menu_title: "Class & Master Entry", route_path: "/master-data", icon_name: "settings" },
+      { menu_code: "EXAM_SUBJECT_ENTRY", menu_title: "Subject Master", route_path: "/exams/subjects", icon_name: "book" },
+      { menu_code: "EXAM_CLASS_SUBJECTS", menu_title: "Class Subject & Exam Method", route_path: "/exams/class-subjects", icon_name: "book" },
+    ],
+  },
   {
     menu_code: "USERS",
     menu_title: "Users",
@@ -107,6 +128,22 @@ const fallbackMenus = [
       },
     ],
   },
+  {
+    menu_code: "EXAM_MANAGEMENT",
+    menu_title: "Exam & Results",
+    route_path: "#",
+    icon_name: "exam",
+    children: [
+      { menu_code: "EXAM_DASHBOARD", menu_title: "Exam Dashboard", route_path: "/exams", icon_name: "exam" },
+      { menu_code: "EXAM_SETUP", menu_title: "Exam Setup", route_path: "/exams/setup", icon_name: "settings" },
+      { menu_code: "EXAM_ROUTINE", menu_title: "Routine & Seating", route_path: "/exams/routine", icon_name: "clock" },
+      { menu_code: "EXAM_CANDIDATES", menu_title: "Candidates & Admit Cards", route_path: "/exams/candidates", icon_name: "students" },
+      { menu_code: "EXAM_MARKS", menu_title: "Fast Marks Entry", route_path: "/exams/marks", icon_name: "exam" },
+      { menu_code: "EXAM_RESULTS", menu_title: "Full Result Sheet", route_path: "/exams/results", icon_name: "report" },
+      { menu_code: "EXAM_DOCUMENTS", menu_title: "Marksheet & Certificates", route_path: "/exams/documents", icon_name: "report" },
+      { menu_code: "EXAM_REPORTS", menu_title: "Exam Reports", route_path: "/exams/reports", icon_name: "report" },
+    ],
+  },
 ];
 
 const openParentMenus = () => {
@@ -123,8 +160,9 @@ const setMenus = (nextMenus) => {
 };
 
 const loadMenus = async () => {
+  let savedMenus = [];
   try {
-    const savedMenus = JSON.parse(localStorage.getItem("sms_menus") || "[]");
+    savedMenus = JSON.parse(localStorage.getItem("sms_menus") || "[]");
     const accessRes = await api.get("/security/me/access");
     const accessMenus = accessRes.data?.data?.menus || [];
 
@@ -133,12 +171,18 @@ const loadMenus = async () => {
     setMenus(nextMenus);
   } catch (error) {
     console.error("Menu parse error:", error);
-    setMenus(fallbackMenus);
+    // Preserve the last successful access menu during a transient API failure.
+    setMenus(savedMenus.length ? savedMenus : fallbackMenus);
   }
 };
 
+const submenuVisible = (code) => opened.value[code] && (!props.collapsed || props.mobileOpen);
+const closeMobile = () => {
+  if (props.mobileOpen) emit("close-mobile");
+};
+
 const toggle = (code) => {
-  if (props.collapsed) return;
+  if (props.collapsed && !props.mobileOpen) return;
   const willOpen = !opened.value[code];
   // Accordion behavior: only one parent menu can stay open at a time.
   opened.value = willOpen ? { [code]: true } : {};
@@ -151,6 +195,11 @@ onMounted(() => {
 watch(
   () => route.path,
   () => openParentMenus()
+);
+
+watch(
+  () => props.mobileOpen,
+  (isOpen) => { if (isOpen) openParentMenus(); }
 );
 </script>
 
@@ -331,6 +380,10 @@ watch(
   .sidebar.collapsed .menu-link {
     justify-content: space-between;
     padding: 11px 13px;
+  }
+
+  .sidebar.collapsed.mobile-open .submenu {
+    display: block;
   }
 }
 </style>

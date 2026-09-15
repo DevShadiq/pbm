@@ -292,7 +292,11 @@ CREATE TABLE subjects (
   institution_id      BIGINT NOT NULL REFERENCES institutions(institution_id) ON DELETE CASCADE,
   subject_code        VARCHAR(30) NOT NULL,
   subject_name        VARCHAR(150) NOT NULL,
+  subject_name_bn     VARCHAR(255),
   subject_type        VARCHAR(30) DEFAULT 'REGULAR', -- REGULAR, OPTIONAL, FOURTH_SUBJECT
+  curriculum_type     VARCHAR(20) NOT NULL DEFAULT 'ALL',
+  paper_mode          VARCHAR(20) NOT NULL DEFAULT 'SINGLE', -- SINGLE, FLEXIBLE
+  canonical_subject_id BIGINT,
   full_marks          DECIMAL(8,2) DEFAULT 100,
   pass_marks          DECIMAL(8,2) DEFAULT 33,
   status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
@@ -305,10 +309,11 @@ CREATE TABLE class_subjects (
   class_id            BIGINT NOT NULL REFERENCES class_levels(class_id) ON DELETE CASCADE,
   group_id            BIGINT REFERENCES `groups`(group_id) ON DELETE SET NULL,
   subject_id          BIGINT NOT NULL REFERENCES subjects(subject_id) ON DELETE CASCADE,
+  paper_no            TINYINT NOT NULL DEFAULT 0, -- 0=single, 1=first, 2=second
   is_mandatory        TINYINT(1) NOT NULL DEFAULT 1,
   sort_order          INT DEFAULT 0,
   status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-  CONSTRAINT uk_class_subjects UNIQUE (class_id, group_id, subject_id)
+  CONSTRAINT uk_class_subjects UNIQUE (class_id, group_id, subject_id, paper_no)
 );
 
 CREATE TABLE academic_batches (
@@ -435,6 +440,7 @@ CREATE TABLE student_enrollments (
   section_id          BIGINT REFERENCES sections(section_id),
   medium_id           BIGINT REFERENCES mediums(medium_id),
   shift_id            BIGINT REFERENCES shifts(shift_id),
+  subjects_assigned  SMALLINT NOT NULL DEFAULT 0,
   enrollment_status   VARCHAR(30) NOT NULL DEFAULT 'ACTIVE', -- ACTIVE, PROMOTED, TRANSFERRED, DROPPED
   start_date          DATE NOT NULL DEFAULT (CURRENT_DATE),
   end_date            DATE,
@@ -443,6 +449,17 @@ CREATE TABLE student_enrollments (
   CONSTRAINT uk_student_year UNIQUE (student_id, academic_year_id),
   CONSTRAINT uk_batch_roll UNIQUE (batch_id, roll_no)
 );
+
+CREATE TABLE student_subject_assignments (
+  enrollment_id BIGINT NOT NULL,
+  subject_id BIGINT NOT NULL,
+  paper_no TINYINT NOT NULL DEFAULT 0,
+  assignment_type VARCHAR(30) NOT NULL DEFAULT 'MANDATORY',
+  PRIMARY KEY (enrollment_id, subject_id, paper_no),
+  CONSTRAINT fk_student_subject_enrollment FOREIGN KEY (enrollment_id) REFERENCES student_enrollments(enrollment_id) ON DELETE CASCADE,
+  CONSTRAINT fk_student_subject_subject FOREIGN KEY (subject_id) REFERENCES subjects(subject_id)
+);
+
 
 CREATE TABLE student_documents (
   document_id         BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -566,10 +583,11 @@ CREATE TABLE teacher_subject_assignments (
   academic_year_id    BIGINT NOT NULL REFERENCES academic_years(academic_year_id),
   batch_id            BIGINT NOT NULL REFERENCES academic_batches(batch_id),
   subject_id          BIGINT NOT NULL REFERENCES subjects(subject_id),
+  paper_no            TINYINT NOT NULL DEFAULT 0,
   is_class_teacher    TINYINT(1) NOT NULL DEFAULT 0,
   status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT uk_teacher_subject UNIQUE (employee_id, academic_year_id, batch_id, subject_id)
+  CONSTRAINT uk_teacher_subject UNIQUE (employee_id, academic_year_id, batch_id, subject_id, paper_no)
 );
 
 CREATE TABLE leave_types (
@@ -678,6 +696,7 @@ CREATE TABLE class_routines (
   start_time          TIME NOT NULL,
   end_time            TIME NOT NULL,
   subject_id          BIGINT REFERENCES subjects(subject_id),
+  paper_no            TINYINT NOT NULL DEFAULT 0,
   teacher_id          BIGINT REFERENCES employees(employee_id),
   classroom_id        BIGINT REFERENCES classrooms(classroom_id),
   status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
@@ -984,13 +1003,14 @@ CREATE TABLE exam_subjects (
   exam_subject_id     BIGINT AUTO_INCREMENT PRIMARY KEY,
   exam_id             BIGINT NOT NULL REFERENCES exams(exam_id) ON DELETE CASCADE,
   subject_id          BIGINT NOT NULL REFERENCES subjects(subject_id),
+  paper_no            TINYINT NOT NULL DEFAULT 0,
   full_marks          DECIMAL(8,2) NOT NULL DEFAULT 100,
   pass_marks          DECIMAL(8,2) NOT NULL DEFAULT 33,
   exam_date           DATE,
   start_time          TIME,
   end_time            TIME,
   status              VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-  CONSTRAINT uk_exam_subjects UNIQUE (exam_id, subject_id)
+  CONSTRAINT uk_exam_subjects UNIQUE (exam_id, subject_id, paper_no)
 );
 
 CREATE TABLE mark_components (
@@ -1069,6 +1089,7 @@ CREATE TABLE student_result_details (
   result_detail_id    BIGINT AUTO_INCREMENT PRIMARY KEY,
   result_id           BIGINT NOT NULL REFERENCES student_results(result_id) ON DELETE CASCADE,
   subject_id          BIGINT NOT NULL REFERENCES subjects(subject_id),
+  paper_no            TINYINT NOT NULL DEFAULT 0,
   full_marks          DECIMAL(8,2) NOT NULL DEFAULT 100,
   pass_marks          DECIMAL(8,2) NOT NULL DEFAULT 33,
   obtained_marks      DECIMAL(8,2) NOT NULL DEFAULT 0,
@@ -1076,7 +1097,7 @@ CREATE TABLE student_result_details (
   grade_point         DECIMAL(4,2),
   subject_status      VARCHAR(30) NOT NULL DEFAULT 'PENDING', -- PASSED, FAILED, ABSENT
   remarks             TEXT,
-  CONSTRAINT uk_student_result_details UNIQUE (result_id, subject_id)
+  CONSTRAINT uk_student_result_details UNIQUE (result_id, subject_id, paper_no)
 );
 
 /* ============================================================
